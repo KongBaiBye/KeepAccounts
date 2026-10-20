@@ -3,10 +3,38 @@
   <view class="head">
     <view class="dot" style="background: {{color}};"></view>
     <text class="name">{{name}}</text>
-    <text class="span muted">{{span}}</text>
   </view>
 
-  <block wx:if="{{loaded && groups.length}}">
+  <view class="toolbar">
+    <scroll-view class="modes" scroll-x enhanced show-scrollbar="{{false}}">
+      <view class="mode-track">
+        <view
+          class="mode {{mode === item.key ? 'on' : ''}}"
+          wx:for="{{modes}}"
+          wx:key="key"
+          data-key="{{item.key}}"
+          bindtap="onMode"
+        >{{item.label}}</view>
+      </view>
+    </scroll-view>
+    <view class="range-row" wx:if="{{rangeReady}}">
+      <view class="arrow" wx:if="{{mode !== 'custom'}}" data-step="-1" bindtap="onShift">‹</view>
+      <view class="range-label {{mode === 'custom' ? 'alone' : ''}}" bindtap="openRangePicker">{{label}}</view>
+      <view class="arrow" wx:if="{{mode !== 'custom'}}" data-step="1" bindtap="onShift">›</view>
+    </view>
+  </view>
+
+  <view class="ask" wx:if="{{mode === 'custom' && !customStart}}">
+    <text class="ask-title">选择时间区间</text>
+    <text class="muted">开始和结束都包含在查询里</text>
+  </view>
+
+  <view class="card total" wx:elif="{{rangeReady && totalText}}">
+    <text class="total-label">总金额</text>
+    <text class="total-value num {{totalTone}}">{{totalText}}</text>
+  </view>
+
+  <block wx:if="{{loaded && rangeReady && groups.length}}">
     <view class="group" wx:for="{{groups}}" wx:key="dayKey">
       <view class="group-head">
         <text>{{item.label}}</text>
@@ -30,5 +58,24 @@
       </view>
     </view>
   </block>
-  <view class="empty muted" wx:elif="{{loaded}}">这段时间还没有账单</view>
+  <view class="empty muted" wx:if="{{loaded && rangeReady && !groups.length}}">这段时间还没有账单</view>
+
+  <view class="mask" wx:if="{{showRangePicker}}" bindtap="closePicker">
+    <view class="sheet" catchtap="noop">
+      <text class="sheet-title">选择时间区间</text>
+      <view class="range-field">
+        <text class="field-label">开始</text>
+        <picker mode="date" value="{{draftStart}}" end="{{draftEnd}}" bindchange="onDraftStart">
+          <view class="date-value">{{draftStart}}</view>
+        </picker>
+      </view>
+      <view class="range-field">
+        <text class="field-label">结束</text>
+        <picker mode="date" value="{{draftEnd}}" start="{{draftStart}}" bindchange="onDraftEnd">
+          <view class="date-value">{{draftEnd}}</view>
+        </picker>
+      </view>
+      <button class="btn ask-btn" bindtap="applyRange">查询</button>
+    </view>
+  </view>
 </view>

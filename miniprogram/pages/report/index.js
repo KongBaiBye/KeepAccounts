@@ -233,7 +233,7 @@ Page({
     if (!this.range) return
     const { id, name, color } = event.currentTarget.dataset
     wx.navigateTo({
-      url: `/pages/tag-records/index?tagId=${id}&name=${encodeURIComponent(name)}&color=${encodeURIComponent(color)}&start=${this.range.start.getTime()}&end=${this.range.end.getTime()}`,
+      url: `/pages/tag-records/index?tagId=${id}&name=${encodeURIComponent(name)}&color=${encodeURIComponent(color)}&mode=${this.data.mode === 'day' || this.data.mode === 'custom' ? 'month' : this.data.mode}&shift=${this.data.mode === 'custom' ? 0 : this.data.shift}`,
     })
   },
 })
