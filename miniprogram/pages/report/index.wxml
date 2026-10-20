@@ -1,0 +1,135 @@
+<view class="boot" wx:if="{{!ready}}">正在打开</view>
+<view class="screen" wx:else>
+  <view class="toolbar">
+    <scroll-view class="modes" scroll-x enhanced show-scrollbar="{{false}}">
+      <view class="mode-track">
+        <view
+          class="mode {{mode === item.key ? 'on' : ''}}"
+          wx:for="{{modes}}"
+          wx:key="key"
+          data-key="{{item.key}}"
+          bindtap="onMode"
+        >{{item.label}}</view>
+      </view>
+    </scroll-view>
+    <view class="range-row" wx:if="{{rangeReady}}">
+      <view class="arrow" data-step="-1" bindtap="onShift">‹</view>
+      <view class="range-label" bindtap="onRangeTap">{{label}}</view>
+      <view class="arrow" data-step="1" bindtap="onShift">›</view>
+    </view>
+    <view class="cycle" wx:if="{{mode === 'custom' && cycleStartDay}}" bindtap="openPicker">每月{{cycleStartDay}}日</view>
+  </view>
+
+  <view class="ask" wx:if="{{mode === 'custom' && !cycleStartDay}}">
+    <text class="ask-title">选择每月几号</text>
+    <text class="muted">选中后自动查询包含今天的那一整月</text>
+    <button class="btn ask-btn" bindtap="openPicker">选择日期</button>
+  </view>
+
+  <block wx:elif="{{loaded && rangeReady}}">
+    <view class="card summary">
+      <view class="metrics">
+        <view class="metric">
+          <text class="label">支出</text>
+          <text class="value expense num">{{expenseText}}</text>
+          <text class="delta {{expenseTone}}">{{expenseDeltaText}}</text>
+        </view>
+        <view class="metric">
+          <text class="label">收入</text>
+          <text class="value income num">{{incomeText}}</text>
+          <text class="delta {{incomeTone}}">{{incomeDeltaText}}</text>
+        </view>
+        <view class="metric balance">
+          <text class="label">结余</text>
+          <text class="value num">{{balanceText}}</text>
+          <text class="delta {{balanceTone}}">{{balanceDeltaText}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="empty-block" wx:if="{{!hasActivity}}">这段时间还没有账单</view>
+    <block wx:else>
+      <view class="section" wx:if="{{expenseTags.length}}">
+        <text class="section-title">支出</text>
+        <view class="card portion">
+          <view
+            class="bar-row"
+            wx:for="{{expenseTags}}"
+            wx:key="tagId"
+            data-id="{{item.tagId}}"
+            data-name="{{item.tagName}}"
+            data-color="{{item.tagColor}}"
+            bindtap="openTag"
+          >
+            <view class="bar-meta">
+              <view class="dot" style="background: {{item.tagColor}};"></view>
+              <text class="bar-name">{{item.tagName}}</text>
+              <text class="bar-amount num">{{item.amountText}}</text>
+            </view>
+            <view class="track"><view class="fill expense-bg" style="width: {{item.width}}%;"></view></view>
+          </view>
+        </view>
+      </view>
+
+      <view class="section" wx:if="{{incomeTags.length}}">
+        <text class="section-title">收入</text>
+        <view class="card portion">
+          <view
+            class="bar-row"
+            wx:for="{{incomeTags}}"
+            wx:key="tagId"
+            data-id="{{item.tagId}}"
+            data-name="{{item.tagName}}"
+            data-color="{{item.tagColor}}"
+            bindtap="openTag"
+          >
+            <view class="bar-meta">
+              <view class="dot" style="background: {{item.tagColor}};"></view>
+              <text class="bar-name">{{item.tagName}}</text>
+              <text class="bar-amount num">{{item.amountText}}</text>
+            </view>
+            <view class="track"><view class="fill income-bg" style="width: {{item.width}}%;"></view></view>
+          </view>
+        </view>
+      </view>
+
+      <view class="section">
+        <view class="section-head">
+          <text class="section-title">趋势</text>
+          <view class="legend">
+            <text><text class="swatch expense-bg"></text>支出</text>
+            <text><text class="swatch income-bg"></text>收入</text>
+          </view>
+        </view>
+        <view class="card trend-card">
+          <scroll-view scroll-x enhanced show-scrollbar="{{false}}">
+            <view class="trend">
+              <view class="col" wx:for="{{trend}}" wx:key="key">
+                <view class="trend-bars">
+                  <view class="bar expense-bg" style="height: {{item.expenseH}}%;"></view>
+                  <view class="bar income-bg" style="height: {{item.incomeH}}%;"></view>
+                </view>
+                <text class="col-label">{{item.label}}</text>
+              </view>
+            </view>
+          </scroll-view>
+        </view>
+      </view>
+    </block>
+  </block>
+
+  <view class="mask" wx:if="{{showDayPicker}}" bindtap="closePicker">
+    <view class="sheet" catchtap="noop">
+      <text class="sheet-title">每月几号</text>
+      <view class="day-grid">
+        <view
+          class="day {{cycleStartDay === item ? 'on' : ''}}"
+          wx:for="{{days}}"
+          wx:key="*this"
+          data-day="{{item}}"
+          bindtap="pickDay"
+        >{{item}}</view>
+      </view>
+    </view>
+  </view>
+</view>

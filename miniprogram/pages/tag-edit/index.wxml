@@ -1,0 +1,43 @@
+<view class="screen edit" wx:if="{{ready}}">
+  <view class="card block">
+    <text class="field-label">名称</text>
+    <input class="field" maxlength="8" placeholder="最多 8 个字" placeholder-class="placeholder" value="{{name}}" bindinput="onName" />
+  </view>
+
+  <view class="card block">
+    <text class="field-label">类型</text>
+    <view class="types">
+      <view class="type {{type === 'expense' ? 'on' : ''}}" data-type="expense" bindtap="onType">支出</view>
+      <view class="type {{type === 'income' ? 'on' : ''}}" data-type="income" bindtap="onType">收入</view>
+    </view>
+  </view>
+
+  <view class="card block">
+    <text class="field-label">图标</text>
+    <view class="icon-grid">
+      <view class="icon-cell {{icon === item.key ? 'on' : ''}}" wx:for="{{icons}}" wx:key="key" data-key="{{item.key}}" bindtap="onIcon">
+        <tag-icon name="{{item.key}}" size="40"></tag-icon>
+      </view>
+    </view>
+  </view>
+
+  <view class="card block">
+    <text class="field-label">颜色</text>
+    <view class="color-grid">
+      <view
+        class="color {{color === item ? 'on' : ''}}"
+        wx:for="{{colors}}"
+        wx:key="*this"
+        data-color="{{item}}"
+        style="background: {{item}};"
+        bindtap="onColor"
+      ></view>
+    </view>
+  </view>
+
+  <button class="btn save" bindtap="onSave">保存</button>
+  <block wx:if="{{id}}">
+    <button class="text-btn" bindtap="onToggleArchive">{{archived ? '取消归档' : '归档'}}</button>
+    <button class="text-btn danger" bindtap="onDelete">删除</button>
+  </block>
+</view>

@@ -1,0 +1,101 @@
+.top {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12rpx;
+}
+
+.new {
+  height: 72rpx;
+  padding: 0 28rpx;
+  font-size: 26rpx;
+}
+
+.section {
+  margin-top: 28rpx;
+}
+
+.section-title {
+  display: block;
+  margin: 0 8rpx 16rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.empty-line {
+  padding: 28rpx 8rpx;
+  font-size: 26rpx;
+}
+
+.card {
+  overflow: hidden;
+}
+
+.swipe {
+  position: relative;
+  background: #E85D4C;
+}
+
+.swipe + .swipe {
+  border-top: 1rpx solid #E7E1D8;
+}
+
+.action {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 26rpx;
+}
+
+.swipe.is-archived,
+.swipe.is-archived .action {
+  background: #1F8A70;
+}
+
+.row {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  min-height: 112rpx;
+  padding: 0 20rpx 0 28rpx;
+  background: #ffffff;
+}
+
+.row.archived {
+  opacity: 0.55;
+}
+
+.dot {
+  width: 16rpx;
+  height: 16rpx;
+  margin-right: 20rpx;
+  border-radius: 16rpx;
+  flex: none;
+}
+
+.name {
+  flex: 1;
+  margin-left: 16rpx;
+  font-size: 30rpx;
+}
+
+.flag {
+  margin-right: 12rpx;
+  color: #8A8178;
+  font-size: 22rpx;
+}
+
+.grip {
+  width: 48rpx;
+  height: 72rpx;
+  flex: none;
+  background-image: radial-gradient(#C8C0B6 1.5px, transparent 1.6px);
+  background-size: 8px 8px;
+  background-position: center;
+}

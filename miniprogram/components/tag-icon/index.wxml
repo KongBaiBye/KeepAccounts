@@ -1,0 +1,1 @@
+<image class="icon" src="/images/tags/{{name}}.svg" style="width: {{size}}rpx; height: {{size}}rpx;" mode="aspectFit" />

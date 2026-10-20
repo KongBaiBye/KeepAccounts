@@ -1,0 +1,172 @@
+page {
+  height: 100%;
+}
+
+.record {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #F6F4F1;
+}
+
+.main {
+  flex: 1;
+  min-height: 0;
+  padding: 24rpx 32rpx 16rpx;
+}
+
+.types {
+  display: flex;
+  width: 280rpx;
+  padding: 6rpx;
+  border-radius: 999rpx;
+  background: #E7E1D8;
+}
+
+.type {
+  flex: 1;
+  height: 64rpx;
+  border-radius: 999rpx;
+  text-align: center;
+  line-height: 64rpx;
+  color: #8A8178;
+  font-size: 26rpx;
+}
+
+.type.on {
+  background: #ffffff;
+  color: #1F2A37;
+  font-weight: 600;
+}
+
+.amount {
+  margin: 36rpx 0 12rpx;
+  font-size: 84rpx;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 28rpx;
+}
+
+.date,
+.note {
+  height: 72rpx;
+  padding: 0 20rpx;
+  border-radius: 16rpx;
+  background: #ffffff;
+  font-size: 26rpx;
+  line-height: 72rpx;
+}
+
+.date {
+  flex: none;
+}
+
+.note {
+  flex: 1;
+}
+
+.placeholder {
+  color: #8A8178;
+}
+
+.tag-scroll {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.tag-track {
+  display: inline-flex;
+  gap: 16rpx;
+  padding-bottom: 8rpx;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  height: 64rpx;
+  padding: 0 22rpx;
+  border-radius: 999rpx;
+  background: #ffffff;
+  font-size: 26rpx;
+}
+
+.dot {
+  width: 14rpx;
+  height: 14rpx;
+  margin-right: 10rpx;
+  border-radius: 14rpx;
+}
+
+.dot.big {
+  width: 20rpx;
+  height: 20rpx;
+}
+
+.empty-tags {
+  margin-top: 20rpx;
+  color: #8A8178;
+  font-size: 26rpx;
+}
+
+.link {
+  margin-left: 12rpx;
+  color: #1F2A37;
+}
+
+.delete {
+  margin-top: 48rpx;
+  text-align: center;
+  color: #E85D4C;
+  font-size: 26rpx;
+}
+
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12rpx;
+  padding: 16rpx 20rpx calc(16rpx + env(safe-area-inset-bottom));
+  background: #EFEBE6;
+}
+
+.key {
+  height: 96rpx;
+  border-radius: 16rpx;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  font-weight: 600;
+}
+
+.key-del {
+  grid-column: 4;
+  grid-row: 1;
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #8A8178;
+}
+
+.key-zero {
+  grid-column: span 2;
+}
+
+.key-ok {
+  grid-column: 4;
+  grid-row: 2 / span 3;
+  height: auto;
+  background: #1F2A37;
+  color: #ffffff;
+  font-size: 30rpx;
+  font-weight: 500;
+}
+
+.key-ok.off {
+  opacity: 0.35;
+}

@@ -1,0 +1,34 @@
+<view class="boot" wx:if="{{!ready}}">正在打开</view>
+<view class="screen" wx:else>
+  <view class="head">
+    <view class="dot" style="background: {{color}};"></view>
+    <text class="name">{{name}}</text>
+    <text class="span muted">{{span}}</text>
+  </view>
+
+  <block wx:if="{{loaded && groups.length}}">
+    <view class="group" wx:for="{{groups}}" wx:key="dayKey">
+      <view class="group-head">
+        <text>{{item.label}}</text>
+        <text class="muted">{{item.subText}}</text>
+      </view>
+      <view class="card list">
+        <view
+          class="row"
+          wx:for="{{item.records}}"
+          wx:for-item="record"
+          wx:key="_id"
+          data-id="{{record._id}}"
+          bindtap="openRecord"
+        >
+          <view class="info">
+            <text class="record-name">{{record.tagName}}</text>
+            <text class="note" wx:if="{{record.note}}">{{record.note}}</text>
+          </view>
+          <text class="amount num {{record.type}}">{{record.amountText}}</text>
+        </view>
+      </view>
+    </view>
+  </block>
+  <view class="empty muted" wx:elif="{{loaded}}">这段时间还没有账单</view>
+</view>

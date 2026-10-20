@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "流水",
+  "enablePullDownRefresh": true,
+  "backgroundColor": "#F6F4F1",
+  "backgroundTextStyle": "dark"
+}

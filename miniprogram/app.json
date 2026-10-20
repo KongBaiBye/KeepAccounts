@@ -1,0 +1,43 @@
+{
+  "pages": [
+    "pages/bill/index",
+    "pages/report/index",
+    "pages/mine/index",
+    "pages/login/index",
+    "pages/record/index",
+    "pages/tags/index",
+    "pages/tag-edit/index",
+    "pages/tag-records/index"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#F6F4F1",
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "记账",
+    "backgroundColor": "#F6F4F1",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#8A8178",
+    "selectedColor": "#1F2A37",
+    "backgroundColor": "#F6F4F1",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/bill/index",
+        "text": "账单"
+      },
+      {
+        "pagePath": "pages/report/index",
+        "text": "报表"
+      },
+      {
+        "pagePath": "pages/mine/index",
+        "text": "我的"
+      }
+    ]
+  },
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents",
+  "sitemapLocation": "sitemap.json"
+}

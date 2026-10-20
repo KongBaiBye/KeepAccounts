@@ -1,0 +1,57 @@
+<view class="login" wx:if="{{ready}}">
+  <view class="hero">
+    <view class="slip">
+      <view class="slip-top">
+        <text>本月</text>
+        <text class="slip-balance num">+1,286</text>
+      </view>
+      <view class="slip-row">
+        <view class="swatch expense"></view>
+        <text>餐饮</text>
+        <text class="num expense">28.00</text>
+      </view>
+      <view class="slip-row">
+        <view class="swatch traffic"></view>
+        <text>交通</text>
+        <text class="num expense">6.00</text>
+      </view>
+      <view class="slip-row">
+        <view class="swatch income"></view>
+        <text>工资</text>
+        <text class="num income">8,600.00</text>
+      </view>
+    </view>
+    <text class="title">记账</text>
+    <text class="subtitle" wx:if="{{mode === 'auth'}}">选个头像，写个昵称，就可以开始记了</text>
+    <text class="subtitle" wx:else>账本还在，直接进去就行</text>
+  </view>
+
+  <view class="card sheet" wx:if="{{mode === 'auth'}}">
+    <button class="avatar" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+      <image wx:if="{{avatarUrl}}" src="{{avatarUrl}}" mode="aspectFill"></image>
+      <view wx:else class="avatar-empty">
+        <text class="avatar-plus">+</text>
+        <text>头像</text>
+      </view>
+    </button>
+    <form bindsubmit="onAuth">
+      <input
+        class="nick"
+        type="nickname"
+        name="nickName"
+        maxlength="20"
+        placeholder="怎么称呼你"
+        placeholder-class="placeholder"
+        value="{{nickName}}"
+        bindinput="onNick"
+      />
+      <button class="btn submit" form-type="submit" loading="{{submitting}}" disabled="{{submitting}}">进入账本</button>
+    </form>
+  </view>
+
+  <view class="card sheet enter" wx:else>
+    <text class="enter-copy">用当前微信继续查看账单</text>
+    <button class="btn submit" bindtap="onEnter">进入</button>
+  </view>
+</view>
+<view class="boot" wx:else>正在打开</view>

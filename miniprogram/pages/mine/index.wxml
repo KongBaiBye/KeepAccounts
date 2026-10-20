@@ -1,0 +1,46 @@
+<view class="boot" wx:if="{{!ready}}">正在打开</view>
+<view class="screen mine" wx:else>
+  <form class="profile-form" bindsubmit="onSave">
+    <view class="card profile">
+      <button class="avatar" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+        <image src="{{avatarUrl}}" mode="aspectFill"></image>
+      </button>
+      <input
+        class="nick"
+        type="nickname"
+        name="nickName"
+        maxlength="20"
+        value="{{nickName}}"
+        bindinput="onNick"
+      />
+      <text class="hint muted">点击头像或昵称即可修改</text>
+      <button wx:if="{{dirty}}" class="btn save" form-type="submit" loading="{{saving}}" disabled="{{saving}}">保存</button>
+    </view>
+  </form>
+
+  <view class="card menu">
+    <view class="menu-row" bindtap="openBackfill">
+      <view class="menu-main">
+        <view class="menu-mark">补</view>
+        <view class="menu-copy">
+          <text class="menu-title">补账</text>
+          <text class="menu-desc">补记以前的账，默认中午 12 点</text>
+        </view>
+      </view>
+      <text class="chevron">›</text>
+    </view>
+    <view class="menu-row" bindtap="goTags">
+      <view class="menu-main">
+        <view class="menu-mark">签</view>
+        <view class="menu-copy">
+          <text class="menu-title">标签管理</text>
+          <text class="menu-desc">支出和收入的分类</text>
+        </view>
+      </view>
+      <text class="chevron">›</text>
+    </view>
+  </view>
+
+  <view class="card logout" bindtap="onLogout">退出登录</view>
+  <record-sheet wx:if="{{backfillOpen}}" backfill="{{true}}" bindclose="closeBackfill" bindsaved="closeBackfill"></record-sheet>
+</view>

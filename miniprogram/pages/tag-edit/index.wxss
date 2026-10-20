@@ -1,0 +1,95 @@
+.edit {
+  padding-bottom: 80rpx;
+}
+
+.block {
+  margin-bottom: 24rpx;
+  padding: 28rpx;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 16rpx;
+  color: #8A8178;
+  font-size: 24rpx;
+}
+
+.field {
+  height: 80rpx;
+  font-size: 32rpx;
+}
+
+.placeholder {
+  color: #8A8178;
+}
+
+.types {
+  display: flex;
+  padding: 6rpx;
+  border-radius: 999rpx;
+  background: #F6F4F1;
+}
+
+.type {
+  flex: 1;
+  height: 68rpx;
+  border-radius: 999rpx;
+  text-align: center;
+  line-height: 68rpx;
+  color: #8A8178;
+}
+
+.type.on {
+  background: #ffffff;
+  color: #1F2A37;
+  font-weight: 600;
+}
+
+.icon-grid,
+.color-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.icon-cell {
+  width: 84rpx;
+  height: 84rpx;
+  border-radius: 20rpx;
+  background: #F6F4F1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx solid transparent;
+}
+
+.icon-cell.on {
+  border-color: #1F2A37;
+  background: #ffffff;
+}
+
+.color {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 32rpx;
+  border: 4rpx solid transparent;
+}
+
+.color.on {
+  border-color: #1F2A37;
+}
+
+.save {
+  margin-top: 12rpx;
+}
+
+.text-btn {
+  margin-top: 16rpx;
+  height: 80rpx;
+  color: #1F2A37;
+  font-size: 28rpx;
+}
+
+.danger {
+  color: #E85D4C;
+}

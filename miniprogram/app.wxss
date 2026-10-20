@@ -1,0 +1,81 @@
+page {
+  background: #F6F4F1;
+  color: #1F2A37;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+view,
+text,
+input,
+button,
+image {
+  box-sizing: border-box;
+}
+
+button {
+  margin: 0;
+  padding: 0;
+  background: none;
+  line-height: 1.4;
+  font-size: inherit;
+  color: inherit;
+  font-weight: inherit;
+}
+
+button::after {
+  border: none;
+}
+
+.num {
+  font-family: "DIN Alternate", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 24rpx;
+  box-shadow: 0 8rpx 24rpx rgba(31, 42, 55, 0.04);
+}
+
+.muted {
+  color: #8A8178;
+}
+
+.expense {
+  color: #E85D4C;
+}
+
+.income {
+  color: #1F8A70;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 96rpx;
+  padding: 0 40rpx;
+  border-radius: 48rpx;
+  background: #1F2A37;
+  color: #ffffff;
+  font-size: 30rpx;
+}
+
+.btn[disabled] {
+  opacity: 0.35;
+}
+
+.screen {
+  min-height: 100%;
+  padding: 16rpx 32rpx calc(160rpx + env(safe-area-inset-bottom));
+}
+
+.boot {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8A8178;
+  font-size: 26rpx;
+}

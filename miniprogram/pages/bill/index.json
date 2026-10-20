@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "账单",
+  "enablePullDownRefresh": true,
+  "backgroundColor": "#F6F4F1",
+  "backgroundTextStyle": "dark",
+  "usingComponents": {
+    "record-sheet": "/components/record-sheet/index"
+  }
+}

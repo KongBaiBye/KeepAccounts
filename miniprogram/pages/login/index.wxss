@@ -1,0 +1,161 @@
+.login {
+  min-height: 100vh;
+  padding: 48rpx 40rpx calc(64rpx + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+}
+
+.slip {
+  align-self: center;
+  width: 460rpx;
+  margin-bottom: 56rpx;
+  padding: 28rpx 32rpx 12rpx;
+  border-radius: 28rpx;
+  background: #ffffff;
+  box-shadow: 0 18rpx 40rpx rgba(31, 42, 55, 0.08);
+  transform: rotate(-2deg);
+}
+
+.slip-top,
+.slip-row {
+  display: flex;
+  align-items: center;
+}
+
+.slip-top {
+  justify-content: space-between;
+  margin-bottom: 12rpx;
+  padding-bottom: 16rpx;
+  border-bottom: 1rpx solid #F0EBE4;
+  color: #8A8178;
+  font-size: 24rpx;
+}
+
+.slip-balance {
+  color: #1F2A37;
+  font-size: 34rpx;
+  font-weight: 600;
+}
+
+.slip-row {
+  height: 72rpx;
+  font-size: 28rpx;
+}
+
+.slip-row .num {
+  margin-left: auto;
+}
+
+.swatch {
+  width: 16rpx;
+  height: 16rpx;
+  margin-right: 16rpx;
+  border-radius: 8rpx;
+  background: #C7A3B0;
+}
+
+.swatch.expense,
+.num.expense {
+  color: #E85D4C;
+}
+
+.swatch.expense {
+  background: #E85D4C;
+}
+
+.swatch.traffic {
+  background: #93AEC9;
+}
+
+.swatch.income,
+.num.income {
+  color: #1F8A70;
+}
+
+.swatch.income {
+  background: #1F8A70;
+}
+
+.title {
+  font-size: 64rpx;
+  font-weight: 600;
+  letter-spacing: 6rpx;
+}
+
+.subtitle {
+  margin-top: 12rpx;
+  margin-bottom: 48rpx;
+  color: #8A8178;
+  font-size: 28rpx;
+  line-height: 1.5;
+}
+
+.sheet {
+  padding: 40rpx 32rpx 36rpx;
+}
+
+.avatar {
+  width: 144rpx;
+  height: 144rpx;
+  margin: 0 auto 32rpx;
+  border-radius: 72rpx;
+  overflow: hidden;
+  background: #F6F4F1;
+  border: 2rpx dashed #D9D1C7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar image {
+  width: 144rpx;
+  height: 144rpx;
+}
+
+.avatar-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #8A8178;
+  font-size: 22rpx;
+}
+
+.avatar-plus {
+  font-size: 40rpx;
+  line-height: 1;
+  color: #1F2A37;
+}
+
+.nick {
+  height: 96rpx;
+  margin-bottom: 28rpx;
+  padding: 0 28rpx;
+  border-radius: 20rpx;
+  background: #F6F4F1;
+  font-size: 30rpx;
+}
+
+.placeholder {
+  color: #8A8178;
+}
+
+.submit {
+  width: 100%;
+}
+
+.enter {
+  margin-top: 8rpx;
+}
+
+.enter-copy {
+  display: block;
+  margin-bottom: 28rpx;
+  color: #8A8178;
+  font-size: 28rpx;
+  text-align: center;
+}

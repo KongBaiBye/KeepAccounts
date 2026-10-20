@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "标签",
+  "usingComponents": {
+    "tag-icon": "/components/tag-icon/index"
+  }
+}
