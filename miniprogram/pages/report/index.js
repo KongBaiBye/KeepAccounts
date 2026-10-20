@@ -130,6 +130,8 @@ Page({
     trend.forEach((item) => {
       item.expenseH = max ? Math.round((item.expense / max) * 100) : 0
       item.incomeH = max ? Math.round((item.income / max) * 100) : 0
+      item.expenseText = item.expense ? formatFen(item.expense) : ''
+      item.incomeText = item.income ? formatFen(item.income) : ''
     })
     const expenseTags = this.decorateTags(result.tags, 'expense')
     const incomeTags = this.decorateTags(result.tags, 'income')

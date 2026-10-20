@@ -39,8 +39,41 @@
       </view>
       <text class="chevron">›</text>
     </view>
+    <view class="menu-row" bindtap="openExport">
+      <view class="menu-main">
+        <view class="menu-mark">导</view>
+        <view class="menu-copy">
+          <text class="menu-title">导出数据</text>
+          <text class="menu-desc">JSON 或 Excel</text>
+        </view>
+      </view>
+      <text class="chevron">›</text>
+    </view>
   </view>
 
   <view class="card logout" bindtap="onLogout">退出登录</view>
   <record-sheet wx:if="{{backfillOpen}}" backfill="{{true}}" bindclose="closeBackfill" bindsaved="closeBackfill"></record-sheet>
+
+  <view class="mask" wx:if="{{exportOpen}}" bindtap="closeExport">
+    <view class="sheet" catchtap="noop">
+      <block wx:if="{{!exportReady}}">
+        <text class="sheet-title">导出数据</text>
+        <view class="option" data-format="json" bindtap="onExport">
+          <text class="option-name">JSON</text>
+          <text class="option-desc">账单、标签和设置的完整备份，金额单位是分</text>
+        </view>
+        <view class="option" data-format="excel" bindtap="onExport">
+          <text class="option-name">Excel</text>
+          <text class="option-desc">用表格查看，金额以元显示</text>
+        </view>
+      </block>
+      <block wx:else>
+        <text class="sheet-title">文件已生成</text>
+        <text class="option-name">{{exportName}}</text>
+        <text class="option-desc">{{exportSummary}}</text>
+        <text class="option-desc">发送到文件传输助手即可保存</text>
+        <button class="btn send" bindtap="shareExport">发送到微信</button>
+      </block>
+    </view>
+  </view>
 </view>
