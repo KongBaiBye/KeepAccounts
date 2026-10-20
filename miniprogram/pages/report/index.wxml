@@ -105,13 +105,15 @@
           <scroll-view scroll-x enhanced show-scrollbar="{{false}}">
             <view class="trend">
               <view class="col" wx:for="{{trend}}" wx:key="key">
-                <view class="trend-amounts">
-                  <text class="trend-amount num expense" wx:if="{{item.expenseText}}">{{item.expenseText}}</text>
-                  <text class="trend-amount num income" wx:if="{{item.incomeText}}">{{item.incomeText}}</text>
-                </view>
-                <view class="trend-bars">
-                  <view class="bar expense-bg" style="height: {{item.expenseH}}%;"></view>
-                  <view class="bar income-bg" style="height: {{item.incomeH}}%;"></view>
+                <view class="plot">
+                  <view class="stack" wx:if="{{item.expenseText}}">
+                    <text class="trend-amount num expense">{{item.expenseText}}</text>
+                    <view class="bar expense-bg" style="height: {{item.expenseH}}rpx;"></view>
+                  </view>
+                  <view class="stack" wx:if="{{item.incomeText}}">
+                    <text class="trend-amount num income">{{item.incomeText}}</text>
+                    <view class="bar income-bg" style="height: {{item.incomeH}}rpx;"></view>
+                  </view>
                 </view>
                 <text class="col-label">{{item.label}}</text>
               </view>

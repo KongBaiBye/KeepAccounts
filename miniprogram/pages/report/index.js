@@ -127,9 +127,10 @@ Page({
       income: trendMap[key] ? trendMap[key].income : 0,
     }))
     const max = trend.reduce((peak, item) => Math.max(peak, item.expense, item.income), 0)
+    const barMax = 168
     trend.forEach((item) => {
-      item.expenseH = max ? Math.round((item.expense / max) * 100) : 0
-      item.incomeH = max ? Math.round((item.income / max) * 100) : 0
+      item.expenseH = max && item.expense ? Math.max(6, Math.round((item.expense / max) * barMax)) : 0
+      item.incomeH = max && item.income ? Math.max(6, Math.round((item.income / max) * barMax)) : 0
       item.expenseText = item.expense ? formatFen(item.expense) : ''
       item.incomeText = item.income ? formatFen(item.income) : ''
     })
