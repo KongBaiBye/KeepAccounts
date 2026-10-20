@@ -110,30 +110,17 @@ Page({
     }
   },
 
-  onToggleArchive() {
-    this.updateArchived(!this.data.archived)
-  },
-
-  onDelete() {
+  onToggleDisabled() {
+    if (this.data.archived) {
+      this.updateArchived(false)
+      return
+    }
     wx.showModal({
-      title: '删除这个标签？',
-      content: '如果已有账单用过，会改为归档，旧账单仍显示原来的样子。',
-      confirmColor: '#E85D4C',
-      success: async (res) => {
-        if (!res.confirm || !this.tagId) return
-        try {
-          const db = wx.cloud.database()
-          const used = await db.collection('records').where({ tagId: this.tagId }).count()
-          if (used.total > 0) {
-            await this.updateArchived(true, false)
-          } else {
-            await db.collection('tags').doc(this.tagId).remove()
-          }
-          wx.navigateBack()
-        } catch (err) {
-          console.error(err)
-          wx.showToast({ title: '没有删除成功', icon: 'none' })
-        }
+      title: '停用这个标签？',
+      content: '停用后不能再用来记账。已经记过的账单不受影响。',
+      confirmColor: '#1F2A37',
+      success: (res) => {
+        if (res.confirm) this.updateArchived(true)
       },
     })
   },

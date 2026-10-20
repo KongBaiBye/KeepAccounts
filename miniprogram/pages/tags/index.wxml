@@ -9,7 +9,7 @@
     <view class="empty-line muted" wx:if="{{!expenseTags.length}}">还没有标签</view>
     <view class="card" wx:else>
       <view
-        class="swipe {{item.archived ? 'is-archived' : ''}}"
+        class="swipe {{item.archived ? 'restore' : ''}}"
         wx:for="{{expenseTags}}"
         wx:key="_id"
         data-id="{{item._id}}"
@@ -19,13 +19,13 @@
         bindtouchmove="onSwipeMove"
         bindtouchend="onSwipeEnd"
       >
-        <view class="action" data-id="{{item._id}}" data-archived="{{item.archived ? 1 : 0}}" catchtap="onArchive">{{item.archived ? '恢复' : '归档'}}</view>
-        <view class="row {{item.archived ? 'archived' : ''}}" style="transform: translateX({{item.offset}}px);" data-id="{{item._id}}" data-type="expense" bindtap="openTag">
+        <view class="action" data-id="{{item._id}}" data-disabled="{{item.archived ? 1 : 0}}" catchtap="onToggle">{{item.archived ? '恢复' : '停用'}}</view>
+        <view class="row {{item.archived ? 'off' : ''}}" style="transform: translateX({{item.offset}}px);" data-id="{{item._id}}" data-type="expense" bindtap="openTag">
           <view class="dot" style="background: {{item.color}};"></view>
           <tag-icon name="{{item.icon}}" size="40"></tag-icon>
           <text class="name">{{item.name}}</text>
-          <text class="flag" wx:if="{{item.archived}}">已归档</text>
           <view
+            wx:if="{{!item.archived}}"
             class="grip"
             data-type="expense"
             data-index="{{index}}"
@@ -43,7 +43,7 @@
     <view class="empty-line muted" wx:if="{{!incomeTags.length}}">还没有标签</view>
     <view class="card" wx:else>
       <view
-        class="swipe {{item.archived ? 'is-archived' : ''}}"
+        class="swipe {{item.archived ? 'restore' : ''}}"
         wx:for="{{incomeTags}}"
         wx:key="_id"
         data-id="{{item._id}}"
@@ -53,13 +53,13 @@
         bindtouchmove="onSwipeMove"
         bindtouchend="onSwipeEnd"
       >
-        <view class="action" data-id="{{item._id}}" data-archived="{{item.archived ? 1 : 0}}" catchtap="onArchive">{{item.archived ? '恢复' : '归档'}}</view>
-        <view class="row {{item.archived ? 'archived' : ''}}" style="transform: translateX({{item.offset}}px);" data-id="{{item._id}}" data-type="income" bindtap="openTag">
+        <view class="action" data-id="{{item._id}}" data-disabled="{{item.archived ? 1 : 0}}" catchtap="onToggle">{{item.archived ? '恢复' : '停用'}}</view>
+        <view class="row {{item.archived ? 'off' : ''}}" style="transform: translateX({{item.offset}}px);" data-id="{{item._id}}" data-type="income" bindtap="openTag">
           <view class="dot" style="background: {{item.color}};"></view>
           <tag-icon name="{{item.icon}}" size="40"></tag-icon>
           <text class="name">{{item.name}}</text>
-          <text class="flag" wx:if="{{item.archived}}">已归档</text>
           <view
+            wx:if="{{!item.archived}}"
             class="grip"
             data-type="income"
             data-index="{{index}}"

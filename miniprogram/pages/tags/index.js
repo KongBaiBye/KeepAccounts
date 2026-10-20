@@ -2,10 +2,13 @@ const { guard } = require('../../utils/session')
 const { getAllTags } = require('../../utils/query')
 
 function splitTags(tags) {
-  const decorate = (type) => tags
-    .filter((tag) => tag.type === type)
-    .sort((left, right) => (left.sort || 0) - (right.sort || 0))
-    .map((tag) => ({ ...tag, offset: 0 }))
+  const decorate = (type) => {
+    const list = tags.filter((tag) => tag.type === type)
+    const bySort = (left, right) => (left.sort || 0) - (right.sort || 0)
+    return list.filter((tag) => !tag.archived).sort(bySort)
+      .concat(list.filter((tag) => tag.archived).sort(bySort))
+      .map((tag) => ({ ...tag, offset: 0 }))
+  }
   return {
     expenseTags: decorate('expense'),
     incomeTags: decorate('income'),
@@ -94,7 +97,7 @@ Page({
       this.swipe.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y'
     }
     if (this.swipe.axis !== 'x') return
-    this.setOffset(this.swipe.type, this.swipe.id, Math.max(-140, Math.min(0, dx)))
+    this.setOffset(this.swipe.type, this.swipe.id, Math.max(-88, Math.min(0, dx)))
   },
 
   onSwipeEnd() {
@@ -104,7 +107,7 @@ Page({
     }
     const list = this.listOf(this.swipe.type)
     const current = list.find((tag) => tag._id === this.swipe.id)
-    const offset = current && current.offset < -50 ? -140 : 0
+    const offset = current && current.offset < -40 ? -88 : 0
     this.setOffset(this.swipe.type, this.swipe.id, offset)
     this.swipe = null
   },
@@ -126,8 +129,9 @@ Page({
     if (!shift) return
     const key = this.keyOf(this.drag.type)
     const list = this.listOf(this.drag.type).slice()
+    if (list[this.drag.index].archived) return
     const next = this.drag.index + shift
-    if (next < 0 || next >= list.length) return
+    if (next < 0 || next >= list.length || list[next].archived) return
     const [item] = list.splice(this.drag.index, 1)
     list.splice(next, 0, item)
     this.drag.index = next
@@ -161,25 +165,31 @@ Page({
     }
   },
 
-  onArchive(event) {
+  onToggle(event) {
     const id = event.currentTarget.dataset.id
-    const archived = Number(event.currentTarget.dataset.archived) === 1
+    const disabled = Number(event.currentTarget.dataset.disabled) === 1
+    const apply = async () => {
+      try {
+        const db = wx.cloud.database()
+        await db.collection('tags').doc(id).update({
+          data: { archived: !disabled, updatedAt: db.serverDate() },
+        })
+        this.reload()
+      } catch (err) {
+        console.error(err)
+        wx.showToast({ title: disabled ? '没有恢复' : '没有停用', icon: 'none' })
+      }
+    }
+    if (disabled) {
+      apply()
+      return
+    }
     wx.showModal({
-      title: archived ? '恢复这个标签？' : '归档这个标签？',
-      content: archived ? '恢复后可以继续用于记账。' : '归档后，记新账时不会再出现。旧账单仍显示原来的样子。',
+      title: '停用这个标签？',
+      content: '停用后不能再用来记账，会排到列表最下面。已经记过的账单不受影响。',
       confirmColor: '#1F2A37',
-      success: async (res) => {
-        if (!res.confirm) return
-        try {
-          const db = wx.cloud.database()
-          await db.collection('tags').doc(id).update({
-            data: { archived: !archived, updatedAt: db.serverDate() },
-          })
-          this.reload()
-        } catch (err) {
-          console.error(err)
-          wx.showToast({ title: '没有改成', icon: 'none' })
-        }
+      success: (res) => {
+        if (res.confirm) apply()
       },
     })
   },

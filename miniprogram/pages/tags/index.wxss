@@ -32,7 +32,11 @@
 
 .swipe {
   position: relative;
-  background: #E85D4C;
+  background: #8A8178;
+}
+
+.swipe.restore {
+  background: #1F2A37;
 }
 
 .swipe + .swipe {
@@ -44,17 +48,12 @@
   right: 0;
   top: 0;
   bottom: 0;
-  width: 140px;
+  width: 88px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #ffffff;
   font-size: 26rpx;
-}
-
-.swipe.is-archived,
-.swipe.is-archived .action {
-  background: #1F8A70;
 }
 
 .row {
@@ -67,8 +66,16 @@
   background: #ffffff;
 }
 
-.row.archived {
-  opacity: 0.55;
+.row.off {
+  background: #F6F4F1;
+}
+
+.row.off .name {
+  color: #B7AFA6;
+}
+
+.row.off .dot {
+  opacity: 0.35;
 }
 
 .dot {
@@ -83,12 +90,6 @@
   flex: 1;
   margin-left: 16rpx;
   font-size: 30rpx;
-}
-
-.flag {
-  margin-right: 12rpx;
-  color: #8A8178;
-  font-size: 22rpx;
 }
 
 .grip {
