@@ -1,15 +1,35 @@
+const { compareRecordsDesc } = require('./records')
+
+let canOrderByCreatedAt = true
+
+async function orderedPage(query, skip, limit) {
+  if (canOrderByCreatedAt) {
+    try {
+      return await query
+        .orderBy('occurredAt', 'desc')
+        .orderBy('createdAt', 'desc')
+        .skip(skip)
+        .limit(limit)
+        .get()
+    } catch (err) {
+      canOrderByCreatedAt = false
+    }
+  }
+  return query.orderBy('occurredAt', 'desc').skip(skip).limit(limit).get()
+}
+
 async function queryRecords({ where, skip = 0, limit = 20, looseWhere, test }) {
   const db = wx.cloud.database()
   const collection = db.collection('records')
   try {
     const query = where ? collection.where(where) : collection
-    return await query.orderBy('occurredAt', 'desc').skip(skip).limit(limit).get()
+    return await orderedPage(query, skip, limit)
   } catch (err) {
     const fallback = looseWhere ? collection.where(looseWhere) : collection
     const res = await fallback.limit(100).get()
     let data = res.data.slice()
     if (test) data = data.filter(test)
-    data.sort((a, b) => new Date(b.occurredAt) - new Date(a.occurredAt))
+    data.sort(compareRecordsDesc)
     return { data: data.slice(skip, skip + limit) }
   }
 }

@@ -89,7 +89,42 @@ assert.strictEqual(formatTyping('1234.5'), '1,234.5')
 assert.strictEqual(formatTyping(''), '0.00')
 assert.strictEqual(formatTyping('0.'), '0.')
 
+const { groupRecords } = require('../miniprogram/utils/records')
 const { buildExport, toJson, buildXlsx, formatExportStamp } = require('../miniprogram/utils/export')
+
+const groups = groupRecords([
+  {
+    _id: 'later-day',
+    amount: 400,
+    type: 'expense',
+    occurredAt: new Date(2026, 9, 21, 12, 0, 0),
+    createdAt: new Date(2026, 9, 21, 9, 0, 0),
+  },
+  {
+    _id: 'noon-early',
+    amount: 500,
+    type: 'expense',
+    occurredAt: new Date(2026, 9, 20, 12, 0, 0),
+    createdAt: new Date(2026, 9, 20, 8, 0, 0),
+  },
+  {
+    _id: 'evening',
+    amount: 1835,
+    type: 'expense',
+    occurredAt: new Date(2026, 9, 20, 18, 30, 0),
+    createdAt: new Date(2026, 9, 20, 7, 0, 0),
+  },
+  {
+    _id: 'noon-late',
+    amount: 2890,
+    type: 'expense',
+    occurredAt: new Date(2026, 9, 20, 12, 0, 0),
+    createdAt: new Date(2026, 9, 20, 19, 0, 0),
+  },
+])
+assert.deepStrictEqual(groups.map((group) => group.dayKey), ['2026-10-21', '2026-10-20'])
+assert.deepStrictEqual(groups[1].records.map((record) => record._id), ['evening', 'noon-late', 'noon-early'])
+assert.strictEqual(groups[1].subText, '支出 52.25   收入 0.00')
 
 const exportedAt = new Date(2026, 9, 20, 16, 18, 5)
 assert.strictEqual(formatExportStamp(exportedAt), '20261020-1618')
@@ -136,6 +171,25 @@ assert.strictEqual(json.settings.cycleStartDay, 20)
 assert.deepStrictEqual(json.tags.map((tag) => tag.name), ['交通', '餐饮', '工资'])
 assert.strictEqual(json.tags[1].archived, true)
 assert.deepStrictEqual(json.records.map((record) => record.id), ['new', 'old'])
+const sameDay = buildExport({
+  records: [
+    {
+      _id: 'first',
+      amount: 100,
+      type: 'expense',
+      occurredAt: new Date(2026, 9, 20, 12, 0, 0),
+      createdAt: new Date(2026, 9, 20, 8, 0, 0),
+    },
+    {
+      _id: 'second',
+      amount: 200,
+      type: 'expense',
+      occurredAt: new Date(2026, 9, 20, 12, 0, 0),
+      createdAt: new Date(2026, 9, 20, 9, 0, 0),
+    },
+  ],
+})
+assert.deepStrictEqual(sameDay.records.map((record) => record.id), ['second', 'first'])
 assert.strictEqual(json.records[0].amount, 2335)
 assert.strictEqual(json.records[0].occurredAt, '2026-10-20 12:30:00')
 assert.strictEqual(json.records[0].note, '午饭 & <面>')

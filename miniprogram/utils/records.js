@@ -1,6 +1,18 @@
 const { formatFen } = require('./money')
 const { toDate, dayKey, formatDayLabel } = require('./time')
 
+function recordTime(value) {
+  if (value == null || value === '') return 0
+  const time = toDate(value).getTime()
+  return Number.isFinite(time) ? time : 0
+}
+
+function compareRecordsDesc(left, right) {
+  const byOccurred = recordTime(right.occurredAt) - recordTime(left.occurredAt)
+  if (byOccurred) return byOccurred
+  return recordTime(right.createdAt) - recordTime(left.createdAt)
+}
+
 function decorateRecord(record) {
   const date = toDate(record.occurredAt)
   return {
@@ -33,11 +45,13 @@ function groupRecords(records) {
   })
   return groups.map((group) => ({
     ...group,
+    records: group.records.sort(compareRecordsDesc),
     subText: `支出 ${formatFen(group.expense)}   收入 ${formatFen(group.income)}`,
   }))
 }
 
 module.exports = {
   decorateRecord,
+  compareRecordsDesc,
   groupRecords,
 }

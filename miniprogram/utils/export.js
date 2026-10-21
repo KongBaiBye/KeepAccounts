@@ -1,4 +1,5 @@
 const { toDate } = require('./time')
+const { compareRecordsDesc } = require('./records')
 
 const CRC_TABLE = (() => {
   const table = new Uint32Array(256)
@@ -26,12 +27,6 @@ function formatLocalDateTime(value) {
 function formatExportStamp(date) {
   const value = toDate(date)
   return `${value.getFullYear()}${pad(value.getMonth() + 1)}${pad(value.getDate())}-${pad(value.getHours())}${pad(value.getMinutes())}`
-}
-
-function timeValue(value) {
-  if (!value) return 0
-  const time = toDate(value).getTime()
-  return Number.isNaN(time) ? 0 : time
 }
 
 function typeLabel(type) {
@@ -82,7 +77,7 @@ function compareTags(left, right) {
 
 function buildExport({ records = [], tags = [], settings = null, exportedAt = new Date() } = {}) {
   const exported = toDate(exportedAt)
-  const sortedRecords = records.slice().sort((left, right) => timeValue(right.occurredAt) - timeValue(left.occurredAt))
+  const sortedRecords = records.slice().sort(compareRecordsDesc)
   return {
     version: 1,
     exportedAt: formatLocalDateTime(exported),
