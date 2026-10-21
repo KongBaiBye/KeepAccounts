@@ -32,28 +32,41 @@
 
 .swipe {
   position: relative;
-  background: #8A8178;
-}
-
-.swipe.restore {
-  background: #1F2A37;
+  background: #E85D4C;
 }
 
 .swipe + .swipe {
   border-top: 1rpx solid #E7E1D8;
 }
 
-.action {
+.actions {
   position: absolute;
   right: 0;
   top: 0;
   bottom: 0;
+  display: flex;
+  width: 176px;
+}
+
+.action {
   width: 88px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #ffffff;
   font-size: 26rpx;
+}
+
+.action.archive {
+  background: #8A8178;
+}
+
+.swipe.restore .action.archive {
+  background: #1F2A37;
+}
+
+.action.remove {
+  background: #E85D4C;
 }
 
 .row {

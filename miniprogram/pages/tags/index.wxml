@@ -19,7 +19,10 @@
         bindtouchmove="onSwipeMove"
         bindtouchend="onSwipeEnd"
       >
-        <view class="action" data-id="{{item._id}}" data-disabled="{{item.archived ? 1 : 0}}" catchtap="onToggle">{{item.archived ? '恢复' : '停用'}}</view>
+        <view class="actions">
+          <view class="action archive" data-id="{{item._id}}" data-disabled="{{item.archived ? 1 : 0}}" catchtap="onToggle">{{item.archived ? '恢复' : '停用'}}</view>
+          <view class="action remove" data-id="{{item._id}}" catchtap="onDelete">删除</view>
+        </view>
         <view class="row {{item.archived ? 'off' : ''}} {{item.depth ? 'child' : ''}}" style="transform: translateX({{item.offset}}px);" data-id="{{item._id}}" data-type="expense" bindtap="openTag">
           <view class="dot" style="background: {{item.color}};"></view>
           <tag-icon name="{{item.icon}}" size="40"></tag-icon>
@@ -53,7 +56,10 @@
         bindtouchmove="onSwipeMove"
         bindtouchend="onSwipeEnd"
       >
-        <view class="action" data-id="{{item._id}}" data-disabled="{{item.archived ? 1 : 0}}" catchtap="onToggle">{{item.archived ? '恢复' : '停用'}}</view>
+        <view class="actions">
+          <view class="action archive" data-id="{{item._id}}" data-disabled="{{item.archived ? 1 : 0}}" catchtap="onToggle">{{item.archived ? '恢复' : '停用'}}</view>
+          <view class="action remove" data-id="{{item._id}}" catchtap="onDelete">删除</view>
+        </view>
         <view class="row {{item.archived ? 'off' : ''}} {{item.depth ? 'child' : ''}}" style="transform: translateX({{item.offset}}px);" data-id="{{item._id}}" data-type="income" bindtap="openTag">
           <view class="dot" style="background: {{item.color}};"></view>
           <tag-icon name="{{item.icon}}" size="40"></tag-icon>

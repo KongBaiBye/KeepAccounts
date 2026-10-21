@@ -52,4 +52,5 @@
 
   <button class="btn save" bindtap="onSave">保存</button>
   <button wx:if="{{id}}" class="text-btn" bindtap="onToggleDisabled">{{archived ? '恢复使用' : '停用'}}</button>
+  <button wx:if="{{id}}" class="text-btn danger" bindtap="onDelete">删除</button>
 </view>

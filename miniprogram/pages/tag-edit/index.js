@@ -2,6 +2,7 @@ const { COLORS, ICONS } = require('../../utils/constants')
 const { guard } = require('../../utils/session')
 const { getAllTags } = require('../../utils/query')
 const { hasChildren, parentChoices, tagParentId, validateTag } = require('../../utils/tags')
+const { removalMessage, removeTagBranch } = require('../../utils/tag-admin')
 
 Page({
   data: {
@@ -209,6 +210,35 @@ Page({
         if (res.confirm) this.updateArchived(true)
       },
     })
+  },
+
+  onDelete() {
+    const withChildren = hasChildren(this.allTags, this.tagId)
+    wx.showModal({
+      title: withChildren ? '删除这个标签和下级？' : '删除这个标签？',
+      content: withChildren
+        ? '下级会一起处理。没有账单的会删除；已经记过账的改为停用，账单仍保留。'
+        : '没有账单时会删除。已经记过账的改为停用，账单仍保留。',
+      confirmColor: '#E85D4C',
+      success: (res) => {
+        if (res.confirm) this.removeTag()
+      },
+    })
+  },
+
+  async removeTag() {
+    wx.showLoading({ title: '处理中', mask: true })
+    try {
+      const tags = this.allTags && this.allTags.length ? this.allTags : await getAllTags()
+      const result = await removeTagBranch(tags, this.tagId)
+      wx.hideLoading()
+      wx.showToast({ title: removalMessage(result), icon: 'none' })
+      setTimeout(() => wx.navigateBack(), 600)
+    } catch (err) {
+      console.error(err)
+      wx.hideLoading()
+      wx.showToast({ title: '没有删除成功', icon: 'none' })
+    }
   },
 
   async updateArchived(archived, back = true) {

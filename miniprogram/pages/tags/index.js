@@ -1,6 +1,9 @@
 const { guard } = require('../../utils/session')
 const { getAllTags } = require('../../utils/query')
 const { arrangeTags, assignSiblingSort, hasChildren, moveManageRow } = require('../../utils/tags')
+const { removalMessage, removeTagBranch } = require('../../utils/tag-admin')
+
+const SWIPE_OPEN = -176
 
 function splitTags(tags) {
   const decorate = (type) => arrangeTags(tags, type).map((tag) => ({ ...tag, offset: 0 }))
@@ -92,7 +95,7 @@ Page({
       this.swipe.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y'
     }
     if (this.swipe.axis !== 'x') return
-    this.setOffset(this.swipe.type, this.swipe.id, Math.max(-88, Math.min(0, dx)))
+    this.setOffset(this.swipe.type, this.swipe.id, Math.max(SWIPE_OPEN, Math.min(0, dx)))
   },
 
   onSwipeEnd() {
@@ -102,7 +105,7 @@ Page({
     }
     const list = this.listOf(this.swipe.type)
     const current = list.find((tag) => tag._id === this.swipe.id)
-    const offset = current && current.offset < -40 ? -88 : 0
+    const offset = current && current.offset < -40 ? SWIPE_OPEN : 0
     this.setOffset(this.swipe.type, this.swipe.id, offset)
     this.swipe = null
   },
@@ -201,5 +204,35 @@ Page({
         if (res.confirm) apply()
       },
     })
+  },
+
+  onDelete(event) {
+    const id = event.currentTarget.dataset.id
+    const list = this.data.expenseTags.concat(this.data.incomeTags)
+    const withChildren = hasChildren(list, id)
+    wx.showModal({
+      title: withChildren ? '删除这个标签和下级？' : '删除这个标签？',
+      content: withChildren
+        ? '下级会一起处理。没有账单的会删除；已经记过账的改为停用，账单仍保留。'
+        : '没有账单时会删除。已经记过账的改为停用，账单仍保留。',
+      confirmColor: '#E85D4C',
+      success: (res) => {
+        if (res.confirm) this.removeTag(id, list)
+      },
+    })
+  },
+
+  async removeTag(id, list) {
+    wx.showLoading({ title: '处理中', mask: true })
+    try {
+      const result = await removeTagBranch(list, id)
+      wx.hideLoading()
+      wx.showToast({ title: removalMessage(result), icon: 'none' })
+      this.reload()
+    } catch (err) {
+      console.error(err)
+      wx.hideLoading()
+      wx.showToast({ title: '没有删除成功', icon: 'none' })
+    }
   },
 })
