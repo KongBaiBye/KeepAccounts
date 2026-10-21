@@ -2,8 +2,9 @@ const { getRange, addDays, startOfDay } = require('../../utils/period')
 const { formatDateInput } = require('../../utils/time')
 const { guard } = require('../../utils/session')
 const { groupRecords } = require('../../utils/records')
-const { queryRecords } = require('../../utils/query')
+const { queryRecords, getAllTags } = require('../../utils/query')
 const { formatFen } = require('../../utils/money')
+const { branchIds, hasChildren, tagRows } = require('../../utils/tags')
 
 const PAGE_SIZE = 20
 const MODES = [
@@ -48,10 +49,12 @@ Page({
     hasMore: true,
     totalText: '',
     totalTone: '',
+    childTags: [],
   },
 
   onLoad(options) {
     this.tagId = options.tagId || ''
+    this.scope = options.scope === 'branch' ? 'branch' : 'tag'
     const name = decodeURIComponent(options.name || '流水')
     const mode = MODES.some((item) => item.key === options.mode) ? options.mode : 'month'
     wx.setNavigationBarTitle({ title: name })
@@ -60,6 +63,8 @@ Page({
       color: decodeURIComponent(options.color || '#B0A4C8'),
       mode,
       shift: mode === 'custom' ? 0 : (Number(options.shift) || 0),
+      customStart: options.customStart || '',
+      customEnd: options.customEnd || '',
     })
   },
 
@@ -100,11 +105,13 @@ Page({
         hasMore: false,
         totalText: '',
         totalTone: '',
+        childTags: [],
       })
       return
     }
     const range = this.currentRange()
     this.range = range
+    this.tagsPromise = null
     this.setData({ label: range.label, rangeReady: true, totalText: '', totalTone: '' })
     this.skip = 0
     this.records = []
@@ -116,24 +123,45 @@ Page({
 
   async loadSummary(range, seq) {
     try {
-      const res = await wx.cloud.callFunction({
-        name: 'getSummary',
-        data: {
-          start: range.start.getTime(),
-          end: range.end.getTime(),
-          grain: 'day',
-          compare: false,
-          detail: false,
-          tagId: this.tagId,
-        },
-      })
+      await this.ensureTags()
+      const data = {
+        start: range.start.getTime(),
+        end: range.end.getTime(),
+        grain: 'day',
+        compare: false,
+        detail: this.scope === 'branch',
+        group: 'child',
+      }
+      if (this.scope !== 'branch') data.tagId = this.tagId
+      const res = await wx.cloud.callFunction({ name: 'getSummary', data })
       if (seq !== this.loadSeq) return
       const result = res.result || {}
       if (result.error) throw new Error(result.error)
-      const balance = Math.round(Number(result.balance) || 0)
+      let expense = Math.round(Number(result.expense) || 0)
+      let income = Math.round(Number(result.income) || 0)
+      let childTags = []
+      if (this.scope === 'branch') {
+        const ids = new Set(this.recordIds())
+        const leaf = (result.tags || []).filter((item) => ids.has(item.tagId))
+        expense = 0
+        income = 0
+        leaf.forEach((item) => {
+          const amount = Math.round(Number(item.amount) || 0)
+          if (item.type === 'income') income += amount
+          else expense += amount
+        })
+        if (hasChildren(this.tags || [], this.tagId)) {
+          childTags = this.decorateTags(tagRows(leaf, this.tags, {
+            group: 'child',
+            focusId: this.tagId,
+          }))
+        }
+      }
+      const balance = income - expense
       this.setData({
         totalText: balance > 0 ? `+${formatFen(balance)}` : formatFen(balance),
         totalTone: balance > 0 ? 'income' : balance < 0 ? 'expense' : '',
+        childTags,
       })
     } catch (err) {
       console.error(err)
@@ -150,6 +178,36 @@ Page({
     return getRange(this.data.mode, this.data.shift, 1)
   },
 
+  ensureTags() {
+    if (!this.tagsPromise) {
+      this.tagsPromise = getAllTags().then((tags) => {
+        this.tags = tags
+        return tags
+      }).catch((err) => {
+        console.error(err)
+        this.tagsPromise = null
+        this.tags = this.tags || []
+        return this.tags
+      })
+    }
+    return this.tagsPromise
+  },
+
+  recordIds() {
+    if (this.scope !== 'branch') return [this.tagId]
+    return branchIds(this.tagId, this.tags || [])
+  },
+
+  decorateTags(tags) {
+    const list = tags.filter((item) => item.amount > 0)
+    const total = list.reduce((sum, item) => sum + item.amount, 0)
+    return list.map((item) => ({
+      ...item,
+      amountText: formatFen(item.amount),
+      width: total ? Math.max(8, Math.round((item.amount / total) * 100)) : 0,
+    }))
+  },
+
   async loadRecords(reset, seq) {
     if (!this.range) return
     if (!reset && this.loadingList) return
@@ -160,15 +218,17 @@ Page({
     const start = this.range.start.getTime()
     const end = this.range.end.getTime()
     try {
+      await this.ensureTags()
+      const ids = this.recordIds()
       const res = await queryRecords({
         where: {
-          tagId: this.tagId,
+          tagId: ids.length === 1 ? ids[0] : _.in(ids),
           occurredAt: _.gte(this.range.start).and(_.lt(this.range.end)),
         },
-        looseWhere: { tagId: this.tagId },
+        looseWhere: ids.length === 1 ? { tagId: ids[0] } : {},
         test: (record) => {
           const time = new Date(record.occurredAt).getTime()
-          return time >= start && time < end
+          return ids.includes(record.tagId) && time >= start && time < end
         },
         skip: reset ? 0 : this.skip,
         limit: PAGE_SIZE,
@@ -179,7 +239,7 @@ Page({
       this.records = records
       this.skip = records.length
       this.setData({
-        groups: groupRecords(records),
+        groups: groupRecords(records, this.tags),
         hasMore: incoming.length === PAGE_SIZE,
         loaded: true,
       })
@@ -210,6 +270,7 @@ Page({
           hasMore: false,
           totalText: '',
           totalTone: '',
+          childTags: [],
         })
       }
       return
@@ -273,5 +334,16 @@ Page({
 
   openRecord(event) {
     wx.navigateTo({ url: `/pages/record/index?id=${event.currentTarget.dataset.id}` })
+  },
+
+  openChild(event) {
+    const { id, name, color } = event.currentTarget.dataset
+    if (!id || !this.range) return
+    const mode = this.data.mode
+    const shift = mode === 'custom' ? 0 : this.data.shift
+    const range = mode === 'custom' ? `&customStart=${this.data.customStart}&customEnd=${this.data.customEnd}` : ''
+    wx.navigateTo({
+      url: `/pages/tag-records/index?tagId=${id}&name=${encodeURIComponent(name)}&color=${encodeURIComponent(color)}&mode=${mode}&shift=${shift}&scope=tag${range}`,
+    })
   },
 })

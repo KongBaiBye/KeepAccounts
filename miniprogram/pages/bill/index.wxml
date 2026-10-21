@@ -35,7 +35,7 @@
         >
           <view class="dot" style="background: {{record.tagColor}};"></view>
           <view class="info">
-            <text class="name">{{record.tagName}}</text>
+            <text class="name">{{record.title}}</text>
             <text class="note" wx:if="{{record.note}}">{{record.note}}</text>
           </view>
           <text class="amount num {{record.type}}">{{record.amountText}}</text>

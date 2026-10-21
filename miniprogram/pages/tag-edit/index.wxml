@@ -5,8 +5,23 @@
   </view>
 
   <view class="card block">
+    <text class="field-label">上级</text>
+    <view class="lock-note" wx:if="{{parentLocked}}">已有下级，自己就是父级</view>
+    <view class="parents" wx:else>
+      <view class="parent {{parentId === '' ? 'on' : ''}}" data-id="none" bindtap="onParent">无</view>
+      <view
+        class="parent {{parentId === item._id ? 'on' : ''}}"
+        wx:for="{{parentChoices}}"
+        wx:key="_id"
+        data-id="{{item._id}}"
+        bindtap="onParent"
+      >{{item.name}}</view>
+    </view>
+  </view>
+
+  <view class="card block">
     <text class="field-label">类型</text>
-    <view class="types">
+    <view class="types {{typeLocked ? 'locked' : ''}}">
       <view class="type {{type === 'expense' ? 'on' : ''}}" data-type="expense" bindtap="onType">支出</view>
       <view class="type {{type === 'income' ? 'on' : ''}}" data-type="income" bindtap="onType">收入</view>
     </view>

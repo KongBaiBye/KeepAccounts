@@ -49,6 +49,13 @@
 
     <view class="empty-block" wx:if="{{!hasActivity}}">这段时间还没有账单</view>
     <block wx:else>
+      <view class="group-switch" wx:if="{{expenseTags.length || incomeTags.length}}">
+        <text class="section-title">占比</text>
+        <view class="switches">
+          <view class="switch {{tagGroup === 'parent' ? 'on' : ''}}" data-group="parent" bindtap="onTagGroup">父级</view>
+          <view class="switch {{tagGroup === 'child' ? 'on' : ''}}" data-group="child" bindtap="onTagGroup">下级</view>
+        </view>
+      </view>
       <view class="section" wx:if="{{expenseTags.length}}">
         <text class="section-title">支出</text>
         <view class="card portion">

@@ -1,6 +1,8 @@
 const { formatFen } = require('../../utils/money')
 const { getRange, enumerateKeys } = require('../../utils/period')
 const { guard } = require('../../utils/session')
+const { getAllTags } = require('../../utils/query')
+const { tagRows } = require('../../utils/tags')
 
 const MODES = [
   { key: 'day', label: '日' },
@@ -44,6 +46,7 @@ Page({
     expenseTone: 'flat',
     incomeTone: 'flat',
     balanceTone: 'flat',
+    tagGroup: 'parent',
     expenseTags: [],
     incomeTags: [],
     trend: [],
@@ -95,19 +98,27 @@ Page({
     this.range = range
     this.setData({ label: range.label, rangeReady: true })
     try {
-      const res = await wx.cloud.callFunction({
-        name: 'getSummary',
-        data: {
-          start: range.start.getTime(),
-          end: range.end.getTime(),
-          grain: range.grain,
-          compare: true,
-          detail: true,
-        },
-      })
+      const [res, tags] = await Promise.all([
+        wx.cloud.callFunction({
+          name: 'getSummary',
+          data: {
+            start: range.start.getTime(),
+            end: range.end.getTime(),
+            grain: range.grain,
+            compare: true,
+            detail: true,
+            group: 'child',
+          },
+        }),
+        getAllTags().catch((err) => {
+          console.error(err)
+          return []
+        }),
+      ])
       if (seq !== this.loadSeq) return
       const result = res.result || {}
       if (result.error) throw new Error(result.error)
+      this.tags = tags
       this.applySummary(range, result)
     } catch (err) {
       console.error(err)
@@ -134,8 +145,11 @@ Page({
       item.expenseText = item.expense ? formatFen(item.expense) : ''
       item.incomeText = item.income ? formatFen(item.income) : ''
     })
-    const expenseTags = this.decorateTags(result.tags, 'expense')
-    const incomeTags = this.decorateTags(result.tags, 'income')
+    const grouped = tagRows(result.tags || [], this.tags || [], {
+      group: this.data.tagGroup === 'child' ? 'child' : 'parent',
+    })
+    const expenseTags = this.decorateTags(grouped, 'expense')
+    const incomeTags = this.decorateTags(grouped, 'income')
     const expenseDiff = result.expense - result.prevExpense
     const incomeDiff = result.income - result.prevIncome
     const balanceDiff = result.balance - result.prevBalance
@@ -232,11 +246,21 @@ Page({
     this.load()
   },
 
+  onTagGroup(event) {
+    const tagGroup = event.currentTarget.dataset.group === 'child' ? 'child' : 'parent'
+    if (tagGroup === this.data.tagGroup) return
+    this.setData({ tagGroup })
+    this.load()
+  },
+
   openTag(event) {
     if (!this.range) return
     const { id, name, color } = event.currentTarget.dataset
+    const scope = this.data.tagGroup === 'child' ? 'tag' : 'branch'
+    const mode = this.data.mode === 'day' || this.data.mode === 'custom' ? 'month' : this.data.mode
+    const shift = this.data.mode === 'custom' ? 0 : this.data.shift
     wx.navigateTo({
-      url: `/pages/tag-records/index?tagId=${id}&name=${encodeURIComponent(name)}&color=${encodeURIComponent(color)}&mode=${this.data.mode === 'day' || this.data.mode === 'custom' ? 'month' : this.data.mode}&shift=${this.data.mode === 'custom' ? 0 : this.data.shift}`,
+      url: `/pages/tag-records/index?tagId=${id}&name=${encodeURIComponent(name)}&color=${encodeURIComponent(color)}&mode=${mode}&shift=${shift}&scope=${scope}`,
     })
   },
 })

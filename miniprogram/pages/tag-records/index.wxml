@@ -34,6 +34,25 @@
     <text class="total-value num {{totalTone}}">{{totalText}}</text>
   </view>
 
+  <view class="card portion" wx:if="{{rangeReady && childTags.length}}">
+    <view
+      class="bar-row"
+      wx:for="{{childTags}}"
+      wx:key="tagId"
+      data-id="{{item.tagId}}"
+      data-name="{{item.tagName}}"
+      data-color="{{item.tagColor}}"
+      bindtap="openChild"
+    >
+      <view class="bar-meta">
+        <view class="bar-dot" style="background: {{item.tagColor}};"></view>
+        <text class="bar-name">{{item.tagName}}</text>
+        <text class="bar-amount num">{{item.amountText}}</text>
+      </view>
+      <view class="track"><view class="fill {{item.type === 'income' ? 'income-bg' : 'expense-bg'}}" style="width: {{item.width}}%;"></view></view>
+    </view>
+  </view>
+
   <block wx:if="{{loaded && rangeReady && groups.length}}">
     <view class="group" wx:for="{{groups}}" wx:key="dayKey">
       <view class="group-head">
@@ -50,7 +69,7 @@
           bindtap="openRecord"
         >
           <view class="info">
-            <text class="record-name">{{record.tagName}}</text>
+            <text class="record-name">{{record.title}}</text>
             <text class="note" wx:if="{{record.note}}">{{record.note}}</text>
           </view>
           <text class="amount num {{record.type}}">{{record.amountText}}</text>

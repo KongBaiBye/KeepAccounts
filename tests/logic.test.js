@@ -224,4 +224,80 @@ assert.ok(files['xl/worksheets/sheet2.xml'].includes('餐饮'))
 assert.ok(files['xl/worksheets/sheet3.xml'].includes('每月起始日'))
 assert.ok(files['xl/workbook.xml'].includes('name="账单"'))
 
+const {
+  arrangeTags,
+  assignSiblingSort,
+  chooseParent,
+  exportTagName,
+  moveManageRow,
+  recordTitle,
+  selectionReady,
+  tagRows,
+  validateTag,
+} = require('../miniprogram/utils/tags')
+const cloudTags = require('../cloudfunctions/getSummary/tags')
+
+const tree = [
+  { _id: 'meal', name: '餐饮', type: 'expense', color: '#E7A090', icon: 'meal', parentId: '', sort: 0 },
+  { _id: 'lunch', name: '午餐', type: 'expense', color: '#E8C49A', icon: 'meal', parentId: 'meal', sort: 0 },
+  { _id: 'takeout', name: '外卖', type: 'expense', color: '#D4C48A', icon: 'meal', parentId: 'meal', sort: 1 },
+  { _id: 'traffic', name: '交通', type: 'expense', color: '#93AEC9', icon: 'traffic', parentId: '', sort: 1 },
+]
+const bills = [
+  { tagId: 'lunch', tagName: '午餐', tagColor: '#E8C49A', tagIcon: 'meal', type: 'expense', amount: 8000 },
+  { tagId: 'takeout', tagName: '外卖', tagColor: '#D4C48A', tagIcon: 'meal', type: 'expense', amount: 20000 },
+  { tagId: 'meal', tagName: '餐饮', tagColor: '#E7A090', tagIcon: 'meal', type: 'expense', amount: 500 },
+  { tagId: 'traffic', tagName: '交通', tagColor: '#93AEC9', tagIcon: 'traffic', type: 'expense', amount: 1000 },
+]
+assert.deepStrictEqual(tagRows(bills, tree, { group: 'parent' }).map((row) => [row.tagName, row.amount]), [
+  ['餐饮', 28500],
+  ['交通', 1000],
+])
+assert.deepStrictEqual(tagRows(bills, tree, { group: 'child' }).map((row) => row.tagName), ['外卖', '午餐', '交通', '餐饮'])
+const focused = tagRows(bills.filter((row) => row.tagId !== 'traffic'), tree, { group: 'child', focusId: 'meal' })
+assert.deepStrictEqual(focused.map((row) => [row.tagName, row.direct, row.amount]), [
+  ['外卖', false, 20000],
+  ['午餐', false, 8000],
+  ['未细分', true, 500],
+])
+assert.deepStrictEqual(tagRows(bills, tree, { group: 'parent' }), cloudTags.tagRows(bills, tree, { group: 'parent' }))
+assert.deepStrictEqual(focused, cloudTags.tagRows(bills.filter((row) => row.tagId !== 'traffic'), tree, { group: 'child', focusId: 'meal' }))
+assert.deepStrictEqual(arrangeTags(tree, 'expense').map((row) => row._id), ['meal', 'lunch', 'takeout', 'traffic'])
+const movedParent = moveManageRow(arrangeTags(tree, 'expense'), 0, 1)
+assert.deepStrictEqual(movedParent.map((row) => row._id), ['traffic', 'meal', 'lunch', 'takeout'])
+const movedChild = moveManageRow(arrangeTags(tree, 'expense'), 1, 1)
+assert.deepStrictEqual(movedChild.map((row) => row._id), ['meal', 'takeout', 'lunch', 'traffic'])
+assert.deepStrictEqual(assignSiblingSort(movedChild).filter((row) => row.parentId === 'meal').map((row) => row.sort), [0, 1])
+assert.strictEqual(recordTitle({ tagId: 'takeout', tagName: '外卖' }, tree), '餐饮 · 外卖')
+assert.strictEqual(exportTagName({ tagId: 'takeout', tagName: '外卖' }, tree), '餐饮 / 外卖')
+assert.strictEqual(recordTitle({ tagId: 'traffic', tagName: '交通' }, tree), '交通')
+const picked = chooseParent(tree, { type: 'expense', parentId: 'meal' })
+assert.strictEqual(picked.needsChild, true)
+assert.strictEqual(picked.tagId, '')
+assert.strictEqual(selectionReady(picked, ''), false)
+const kept = chooseParent(tree, { type: 'expense', parentId: 'meal', tagId: 'meal', keepId: 'meal' })
+assert.strictEqual(kept.tagId, 'meal')
+assert.strictEqual(selectionReady(kept, 'meal'), true)
+const plain = chooseParent(tree, { type: 'expense', parentId: 'traffic' })
+assert.strictEqual(plain.tagId, 'traffic')
+assert.strictEqual(plain.needsChild, false)
+assert.strictEqual(validateTag(tree, { name: '午餐', type: 'expense', parentId: 'meal' }), '同一级已经有这个名称')
+assert.strictEqual(validateTag(tree, { name: '早餐', type: 'expense', parentId: 'meal' }), '')
+assert.strictEqual(validateTag(tree, { id: 'meal', name: '餐饮', type: 'expense', parentId: 'traffic' }), '已有下级，不能再挂到别的标签下')
+
+const nestedExport = buildExport({
+  tags: tree,
+  records: [{
+    _id: 'takeout-bill',
+    amount: 20000,
+    type: 'expense',
+    tagId: 'takeout',
+    tagName: '外卖',
+    occurredAt: new Date(2026, 9, 20, 12, 0, 0),
+    createdAt: new Date(2026, 9, 20, 13, 0, 0),
+  }],
+})
+assert.strictEqual(nestedExport.records[0].tagName, '餐饮 / 外卖')
+assert.strictEqual(nestedExport.tags.find((tag) => tag.id === 'takeout').parentName, '餐饮')
+
 console.log('ok')

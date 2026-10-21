@@ -78,6 +78,7 @@ async function seedTagsFromClient() {
         icon: tag.icon,
         color: COLORS[index % COLORS.length],
         type: tag.type,
+        parentId: '',
         sort,
         archived: false,
         createdAt: now,

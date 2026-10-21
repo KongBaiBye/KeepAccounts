@@ -1,4 +1,5 @@
 const cloud = require('wx-server-sdk')
+const { recordsInBranch, tagRows } = require('./tags')
 
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV,
@@ -32,37 +33,30 @@ async function fetchRecords(where) {
   return all
 }
 
-function summarize(records, grain) {
+async function fetchTags(openid) {
+  try {
+    const all = []
+    for (let skip = 0; skip < 500; skip += 100) {
+      const res = await db.collection('tags').where({ _openid: openid }).skip(skip).limit(100).get()
+      all.push(...res.data)
+      if (res.data.length < 100) break
+    }
+    return all
+  } catch (err) {
+    const text = `${err && err.errCode} ${err && (err.errMsg || err.message)}`
+    if (text.includes('502005') || text.includes('not exist')) return []
+    throw err
+  }
+}
+
+function summarize(records, grain, tags, options) {
   let expense = 0
   let income = 0
-  const tags = {}
   const trend = {}
   records.forEach((record) => {
     const amount = Math.round(Number(record.amount) || 0)
     if (record.type === 'income') income += amount
     else expense += amount
-    const tagId = record.tagId || 'unknown'
-    if (!tags[tagId]) {
-      tags[tagId] = {
-        tagId,
-        tagName: record.tagName || '未分类',
-        tagColor: record.tagColor || '#B0A4C8',
-        tagIcon: record.tagIcon || 'more',
-        type: record.type,
-        amount: 0,
-        time: 0,
-      }
-    }
-    const bucket = tags[tagId]
-    bucket.amount += amount
-    const time = new Date(record.occurredAt).getTime() || 0
-    if (time >= bucket.time) {
-      bucket.time = time
-      bucket.tagName = record.tagName || bucket.tagName
-      bucket.tagColor = record.tagColor || bucket.tagColor
-      bucket.tagIcon = record.tagIcon || bucket.tagIcon
-      bucket.type = record.type
-    }
     const key = shanghaiKey(record.occurredAt, grain)
     if (!trend[key]) trend[key] = { key, expense: 0, income: 0 }
     if (record.type === 'income') trend[key].income += amount
@@ -72,17 +66,7 @@ function summarize(records, grain) {
     expense,
     income,
     balance: income - expense,
-    tags: Object.keys(tags).map((key) => {
-      const item = tags[key]
-      return {
-        tagId: item.tagId,
-        tagName: item.tagName,
-        tagColor: item.tagColor,
-        tagIcon: item.tagIcon,
-        type: item.type,
-        amount: item.amount,
-      }
-    }).sort((a, b) => b.amount - a.amount),
+    tags: tagRows(records, tags, options),
     trend: Object.keys(trend).map((key) => trend[key]),
   }
 }
@@ -97,15 +81,22 @@ exports.main = async (event) => {
   }
 
   const grain = event.grain === 'month' ? 'month' : 'day'
+  const branch = event.scope === 'branch' && event.tagId
   const where = {
     _openid: OPENID,
     occurredAt: _.gte(start).and(_.lt(end)),
   }
-  if (event.tagId) where.tagId = event.tagId
+  if (event.tagId && !branch) where.tagId = event.tagId
+  const options = {
+    group: event.group === 'child' ? 'child' : 'parent',
+    focusId: branch ? event.tagId : '',
+  }
 
   try {
-    const currentRecords = await fetchRecords(where)
-    const current = summarize(currentRecords, grain)
+    const tags = await fetchTags(OPENID)
+    const narrow = (records) => (branch ? recordsInBranch(records, event.tagId, tags) : records)
+    const currentRecords = narrow(await fetchRecords(where))
+    const current = summarize(currentRecords, grain, tags, options)
     let previous = { expense: 0, income: 0, balance: 0 }
     if (event.compare !== false) {
       const duration = end.getTime() - start.getTime()
@@ -113,8 +104,8 @@ exports.main = async (event) => {
         ...where,
         occurredAt: _.gte(new Date(start.getTime() - duration)).and(_.lt(start)),
       }
-      const prevRecords = await fetchRecords(prevWhere)
-      previous = summarize(prevRecords, grain)
+      const prevRecords = narrow(await fetchRecords(prevWhere))
+      previous = summarize(prevRecords, grain, tags, options)
     }
     return {
       expense: current.expense,

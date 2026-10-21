@@ -2,6 +2,7 @@ const { applyKey, rawToFen, formatTyping } = require('../../utils/money')
 const { tint } = require('../../utils/constants')
 const { getAllTags } = require('../../utils/query')
 const { formatDateInput, parseDateInput, parseDateTime, formatShortDay } = require('../../utils/time')
+const { chooseParent, selectionModel, selectionReady } = require('../../utils/tags')
 
 Component({
   properties: {
@@ -17,7 +18,11 @@ Component({
     raw: '',
     amountText: '0.00',
     tagId: '',
-    tags: [],
+    parentTagId: '',
+    parents: [],
+    children: [],
+    needsChild: false,
+    showChildHint: false,
     emptyTags: false,
     note: '',
     date: '',
@@ -62,32 +67,61 @@ Component({
       this.refreshTags()
     },
 
-    refreshTags() {
-      const tags = (this.allTags || [])
-        .filter((tag) => tag.type === this.data.type && !tag.archived)
-        .map((tag) => ({ ...tag, tint: tint(tag.color) }))
-      const tagId = tags.some((tag) => tag._id === this.data.tagId) ? this.data.tagId : ''
+    paint(tags) {
+      return (tags || []).map((tag) => ({ ...tag, tint: tint(tag.color) }))
+    },
+
+    applyModel(model) {
+      const ready = selectionReady(model, '')
       this.setData({
-        tags,
-        emptyTags: tags.length === 0,
-        tagId,
-        canSave: rawToFen(this.data.raw) > 0 && !!tagId,
+        type: this.data.type,
+        parents: this.paint(model.parents),
+        children: this.paint(model.children),
+        parentTagId: model.parentTagId,
+        tagId: model.tagId,
+        needsChild: model.needsChild,
+        showChildHint: model.needsChild && !ready,
+        emptyTags: model.parents.length === 0,
+        canSave: rawToFen(this.data.raw) > 0 && ready,
       })
+    },
+
+    refreshTags() {
+      this.applyModel(selectionModel(this.allTags, {
+        type: this.data.type,
+        parentTagId: this.data.parentTagId,
+        tagId: this.data.tagId,
+      }))
     },
 
     switchType(event) {
       const type = event.currentTarget.dataset.type
       if (type === this.data.type) return
       this.data.type = type
-      this.setData({ type })
+      this.data.parentTagId = ''
+      this.data.tagId = ''
       this.refreshTags()
     },
 
-    pickTag(event) {
+    pickParent(event) {
+      this.applyModel(chooseParent(this.allTags, {
+        type: this.data.type,
+        parentId: event.currentTarget.dataset.id,
+        tagId: this.data.tagId,
+      }))
+    },
+
+    pickChild(event) {
       const tagId = event.currentTarget.dataset.id
+      const ready = selectionReady({
+        tagId,
+        parentTagId: this.data.parentTagId,
+        needsChild: this.data.needsChild,
+      }, '')
       this.setData({
         tagId,
-        canSave: rawToFen(this.data.raw) > 0 && !!tagId,
+        showChildHint: this.data.needsChild && !ready,
+        canSave: rawToFen(this.data.raw) > 0 && ready,
       })
     },
 
@@ -114,7 +148,7 @@ Component({
       this.setData({
         raw,
         amountText: formatTyping(raw),
-        canSave: rawToFen(raw) > 0 && !!this.data.tagId,
+        canSave: rawToFen(raw) > 0 && selectionReady(this.data, ''),
       })
     },
 
@@ -127,7 +161,7 @@ Component({
 
     async onSave() {
       if (!this.data.canSave || this.saving || this.closing) return
-      const tag = (this.data.tags || []).find((item) => item._id === this.data.tagId)
+      const tag = (this.allTags || []).find((item) => item._id === this.data.tagId)
       if (!tag) return
       this.saving = true
       wx.showLoading({ title: '保存中', mask: true })

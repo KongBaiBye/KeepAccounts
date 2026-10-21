@@ -135,6 +135,41 @@
   margin-top: 32rpx;
 }
 
+.group-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 36rpx;
+}
+
+.group-switch .section-title {
+  margin: 0 8rpx;
+}
+
+.switches {
+  display: flex;
+  padding: 4rpx;
+  border-radius: 999rpx;
+  background: #E7E1D8;
+}
+
+.switch {
+  min-width: 96rpx;
+  height: 52rpx;
+  padding: 0 20rpx;
+  border-radius: 999rpx;
+  color: #8A8178;
+  font-size: 24rpx;
+  line-height: 52rpx;
+  text-align: center;
+}
+
+.switch.on {
+  background: #ffffff;
+  color: #1F2A37;
+  font-weight: 600;
+}
+
 .section {
   margin-top: 36rpx;
 }

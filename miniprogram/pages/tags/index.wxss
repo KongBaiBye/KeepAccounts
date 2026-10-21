@@ -66,6 +66,10 @@
   background: #ffffff;
 }
 
+.row.child {
+  padding-left: 72rpx;
+}
+
 .row.off {
   background: #F6F4F1;
 }

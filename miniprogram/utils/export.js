@@ -1,5 +1,6 @@
 const { toDate } = require('./time')
 const { compareRecordsDesc } = require('./records')
+const { exportTagName, indexTags, tagParentId } = require('./tags')
 
 const CRC_TABLE = (() => {
   const table = new Uint32Array(256)
@@ -39,13 +40,13 @@ function signedYuan(type, fen) {
   return type === 'income' ? yuan : `-${yuan}`
 }
 
-function mapRecord(record) {
+function mapRecord(record, tags) {
   return {
     id: record._id || '',
     amount: Math.round(Number(record.amount) || 0),
     type: record.type === 'income' ? 'income' : 'expense',
     tagId: record.tagId || '',
-    tagName: record.tagName || '',
+    tagName: exportTagName(record, tags),
     tagColor: record.tagColor || '',
     tagIcon: record.tagIcon || '',
     note: record.note || '',
@@ -55,10 +56,13 @@ function mapRecord(record) {
   }
 }
 
-function mapTag(tag) {
+function mapTag(tag, byId) {
+  const parent = byId[tagParentId(tag)]
   return {
     id: tag._id || '',
     name: tag.name || '',
+    parentId: tagParentId(tag),
+    parentName: parent ? parent.name : '',
     icon: tag.icon || '',
     color: tag.color || '',
     type: tag.type === 'income' ? 'income' : 'expense',
@@ -77,6 +81,7 @@ function compareTags(left, right) {
 
 function buildExport({ records = [], tags = [], settings = null, exportedAt = new Date() } = {}) {
   const exported = toDate(exportedAt)
+  const byId = indexTags(tags)
   const sortedRecords = records.slice().sort(compareRecordsDesc)
   return {
     version: 1,
@@ -85,8 +90,8 @@ function buildExport({ records = [], tags = [], settings = null, exportedAt = ne
     settings: {
       cycleStartDay: settings && settings.cycleStartDay ? Number(settings.cycleStartDay) : null,
     },
-    tags: tags.map(mapTag).sort(compareTags),
-    records: sortedRecords.map(mapRecord),
+    tags: tags.map((tag) => mapTag(tag, byId)).sort(compareTags),
+    records: sortedRecords.map((record) => mapRecord(record, byId)),
   }
 }
 
@@ -154,14 +159,15 @@ function billSheet(doc) {
       textCell(record.note),
     ])
   })
-  return { name: '账单', rows, widths: [22, 10, 14, 14, 28] }
+  return { name: '账单', rows, widths: [22, 10, 22, 14, 28] }
 }
 
 function tagSheet(doc) {
-  const rows = [headerRow(['名称', '类型', '颜色', '图标', '排序', '已归档'])]
+  const rows = [headerRow(['名称', '上级', '类型', '颜色', '图标', '排序', '已归档'])]
   doc.tags.forEach((tag) => {
     rows.push([
       textCell(tag.name),
+      textCell(tag.parentName || ''),
       textCell(typeLabel(tag.type)),
       textCell(tag.color),
       textCell(tag.icon),
@@ -169,7 +175,7 @@ function tagSheet(doc) {
       textCell(tag.archived ? '是' : '否'),
     ])
   })
-  return { name: '标签', rows, widths: [14, 10, 12, 12, 10, 12] }
+  return { name: '标签', rows, widths: [14, 14, 10, 12, 12, 10, 12] }
 }
 
 function settingSheet(doc) {

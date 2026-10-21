@@ -30,12 +30,26 @@
   </view>
   <scroll-view wx:if="{{!emptyTags}}" class="tag-scroll" scroll-x enable-flex show-scrollbar="{{false}}">
     <view
+      class="chip {{parentTagId === item._id ? 'on' : ''}}"
+      wx:for="{{parents}}"
+      wx:key="_id"
+      data-id="{{item._id}}"
+      style="{{parentTagId === item._id ? 'background:' + item.tint : ''}}"
+      bindtap="pickParent"
+    >
+      <view class="dot {{parentTagId === item._id ? 'big' : ''}}" style="background: {{item.color}};"></view>
+      <text>{{item.name}}</text>
+    </view>
+  </scroll-view>
+  <view class="child-hint" wx:if="{{showChildHint}}">请选择下级</view>
+  <scroll-view wx:if="{{children.length}}" class="tag-scroll" scroll-x enable-flex show-scrollbar="{{false}}">
+    <view
       class="chip {{tagId === item._id ? 'on' : ''}}"
-      wx:for="{{tags}}"
+      wx:for="{{children}}"
       wx:key="_id"
       data-id="{{item._id}}"
       style="{{tagId === item._id ? 'background:' + item.tint : ''}}"
-      bindtap="pickTag"
+      bindtap="pickChild"
     >
       <view class="dot {{tagId === item._id ? 'big' : ''}}" style="background: {{item.color}};"></view>
       <text>{{item.name}}</text>

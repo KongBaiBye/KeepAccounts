@@ -1,14 +1,9 @@
 const { guard } = require('../../utils/session')
 const { getAllTags } = require('../../utils/query')
+const { arrangeTags, assignSiblingSort, hasChildren, moveManageRow } = require('../../utils/tags')
 
 function splitTags(tags) {
-  const decorate = (type) => {
-    const list = tags.filter((tag) => tag.type === type)
-    const bySort = (left, right) => (left.sort || 0) - (right.sort || 0)
-    return list.filter((tag) => !tag.archived).sort(bySort)
-      .concat(list.filter((tag) => tag.archived).sort(bySort))
-      .map((tag) => ({ ...tag, offset: 0 }))
-  }
+  const decorate = (type) => arrangeTags(tags, type).map((tag) => ({ ...tag, offset: 0 }))
   return {
     expenseTags: decorate('expense'),
     incomeTags: decorate('income'),
@@ -125,16 +120,22 @@ Page({
   onDragMove(event) {
     if (!this.drag) return
     const dy = event.touches[0].clientY - this.drag.y
-    const shift = Math.round(dy / this.rowHeight)
+    let shift = Math.round(dy / this.rowHeight)
     if (!shift) return
     const key = this.keyOf(this.drag.type)
-    const list = this.listOf(this.drag.type).slice()
-    if (list[this.drag.index].archived) return
-    const next = this.drag.index + shift
-    if (next < 0 || next >= list.length || list[next].archived) return
-    const [item] = list.splice(this.drag.index, 1)
-    list.splice(next, 0, item)
-    this.drag.index = next
+    let list = this.listOf(this.drag.type).slice()
+    const id = list[this.drag.index] && list[this.drag.index]._id
+    let guard = 0
+    while (shift !== 0 && guard < 8) {
+      const direction = shift > 0 ? 1 : -1
+      const next = moveManageRow(list, this.drag.index, direction)
+      if (next === list) break
+      list = next
+      this.drag.index = list.findIndex((row) => row._id === id)
+      shift -= direction
+      guard += 1
+    }
+    if (!guard) return
     this.drag.y = event.touches[0].clientY
     this.drag.moved = true
     this.setData({ [key]: list })
@@ -147,17 +148,21 @@ Page({
     this.drag = null
     if (!moved) return
     const list = this.listOf(type)
+    const previous = {}
+    list.forEach((tag) => {
+      previous[tag._id] = tag.sort || 0
+    })
+    const indexed = assignSiblingSort(list)
+    const key = this.keyOf(type)
+    this.setData({ [key]: indexed })
     const db = wx.cloud.database()
     try {
-      await Promise.all(list.map((tag, index) => {
-        if (tag.sort === index) return Promise.resolve()
+      await Promise.all(indexed.map((tag) => {
+        if ((tag.sort || 0) === (previous[tag._id] || 0)) return Promise.resolve()
         return db.collection('tags').doc(tag._id).update({
-          data: { sort: index, updatedAt: db.serverDate() },
+          data: { sort: tag.sort, updatedAt: db.serverDate() },
         })
       }))
-      list.forEach((tag, index) => {
-        tag.sort = index
-      })
     } catch (err) {
       console.error(err)
       wx.showToast({ title: '排序没有保存', icon: 'none' })
@@ -184,9 +189,13 @@ Page({
       apply()
       return
     }
+    const list = this.data.expenseTags.concat(this.data.incomeTags)
+    const withChildren = hasChildren(list, id)
     wx.showModal({
       title: '停用这个标签？',
-      content: '停用后不能再用来记账，会排到列表最下面。已经记过的账单不受影响。',
+      content: withChildren
+        ? '停用后不能再用来记账，它的下级也不会出现在记一笔里。已经记过的账单不受影响。'
+        : '停用后不能再用来记账，会排到同级的最下面。已经记过的账单不受影响。',
       confirmColor: '#1F2A37',
       success: (res) => {
         if (res.confirm) apply()

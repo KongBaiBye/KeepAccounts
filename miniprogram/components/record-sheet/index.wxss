@@ -118,6 +118,12 @@
   flex: none;
 }
 
+.child-hint {
+  padding: 0 32rpx 8rpx;
+  color: #8A8178;
+  font-size: 24rpx;
+}
+
 .chip {
   display: inline-flex;
   align-items: center;

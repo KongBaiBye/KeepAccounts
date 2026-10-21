@@ -1,5 +1,6 @@
 const { formatFen } = require('./money')
 const { toDate, dayKey, formatDayLabel } = require('./time')
+const { indexTags, recordTitle } = require('./tags')
 
 function recordTime(value) {
   if (value == null || value === '') return 0
@@ -13,21 +14,23 @@ function compareRecordsDesc(left, right) {
   return recordTime(right.createdAt) - recordTime(left.createdAt)
 }
 
-function decorateRecord(record) {
+function decorateRecord(record, tags) {
   const date = toDate(record.occurredAt)
   return {
     ...record,
     amountText: `${record.type === 'income' ? '+' : '-'}${formatFen(record.amount)}`,
+    title: recordTitle(record, tags),
     dayKey: dayKey(date),
     dayLabel: formatDayLabel(date),
   }
 }
 
-function groupRecords(records) {
+function groupRecords(records, tags) {
+  const byId = indexTags(tags)
   const groups = []
   const index = {}
   records.forEach((record) => {
-    const item = decorateRecord(record)
+    const item = decorateRecord(record, byId)
     if (index[item.dayKey] === undefined) {
       index[item.dayKey] = groups.length
       groups.push({

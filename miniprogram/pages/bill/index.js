@@ -2,7 +2,7 @@ const { formatFen } = require('../../utils/money')
 const { getRange } = require('../../utils/period')
 const { guard } = require('../../utils/session')
 const { groupRecords } = require('../../utils/records')
-const { queryRecords } = require('../../utils/query')
+const { queryRecords, getAllTags } = require('../../utils/query')
 
 const PAGE_SIZE = 20
 
@@ -86,17 +86,24 @@ Page({
     this.loadingList = true
     const pageSeq = seq || this.loadSeq
     try {
+      const pendingTags = reset || !this.tags
+        ? getAllTags().catch((err) => {
+          console.error(err)
+          return this.tags || []
+        })
+        : Promise.resolve(this.tags || [])
       const res = await queryRecords({
         skip: reset ? 0 : this.skip,
         limit: PAGE_SIZE,
       })
+      this.tags = await pendingTags
       if (pageSeq !== this.loadSeq) return
       const incoming = res.data || []
       const records = reset ? incoming : (this.records || []).concat(incoming)
       this.records = records
       this.skip = records.length
       this.setData({
-        groups: groupRecords(records),
+        groups: groupRecords(records, this.tags),
         hasMore: incoming.length === PAGE_SIZE,
         loaded: true,
       })

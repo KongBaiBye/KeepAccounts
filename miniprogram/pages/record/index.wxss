@@ -108,6 +108,12 @@ page {
   height: 20rpx;
 }
 
+.child-hint {
+  margin: 4rpx 0 12rpx;
+  color: #8A8178;
+  font-size: 24rpx;
+}
+
 .empty-tags {
   margin-top: 20rpx;
   color: #8A8178;

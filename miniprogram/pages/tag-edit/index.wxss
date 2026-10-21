@@ -45,6 +45,36 @@
   font-weight: 600;
 }
 
+.types.locked {
+  opacity: 0.55;
+}
+
+.parents {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.parent {
+  height: 64rpx;
+  padding: 0 22rpx;
+  border-radius: 999rpx;
+  background: #F6F4F1;
+  color: #1F2A37;
+  font-size: 26rpx;
+  line-height: 64rpx;
+}
+
+.parent.on {
+  background: #1F2A37;
+  color: #ffffff;
+}
+
+.lock-note {
+  color: #8A8178;
+  font-size: 28rpx;
+}
+
 .icon-grid,
 .color-grid {
   display: flex;
