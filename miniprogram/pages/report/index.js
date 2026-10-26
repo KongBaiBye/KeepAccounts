@@ -2,7 +2,7 @@ const { formatFen } = require('../../utils/money')
 const { getRange, enumerateKeys } = require('../../utils/period')
 const { guard } = require('../../utils/session')
 const { getAllTags } = require('../../utils/query')
-const { tagRows } = require('../../utils/tags')
+const { recordTitle, tagRows } = require('../../utils/tags')
 
 const MODES = [
   { key: 'day', label: '日' },
@@ -145,9 +145,14 @@ Page({
       item.expenseText = item.expense ? formatFen(item.expense) : ''
       item.incomeText = item.income ? formatFen(item.income) : ''
     })
-    const grouped = tagRows(result.tags || [], this.tags || [], {
-      group: this.data.tagGroup === 'child' ? 'child' : 'parent',
-    })
+    const childView = this.data.tagGroup === 'child'
+    const tags = this.tags || []
+    const grouped = tagRows(result.tags || [], tags, {
+      group: childView ? 'child' : 'parent',
+    }).map((item) => ({
+      ...item,
+      label: childView ? recordTitle(item, tags) : item.tagName,
+    }))
     const expenseTags = this.decorateTags(grouped, 'expense')
     const incomeTags = this.decorateTags(grouped, 'income')
     const expenseDiff = result.expense - result.prevExpense

@@ -64,13 +64,13 @@
             wx:for="{{expenseTags}}"
             wx:key="tagId"
             data-id="{{item.tagId}}"
-            data-name="{{item.tagName}}"
+            data-name="{{item.label}}"
             data-color="{{item.tagColor}}"
             bindtap="openTag"
           >
             <view class="bar-meta">
               <view class="dot" style="background: {{item.tagColor}};"></view>
-              <text class="bar-name">{{item.tagName}}</text>
+              <text class="bar-name">{{item.label}}</text>
               <text class="bar-amount num">{{item.amountText}}</text>
             </view>
             <view class="track"><view class="fill expense-bg" style="width: {{item.width}}%;"></view></view>
@@ -86,13 +86,13 @@
             wx:for="{{incomeTags}}"
             wx:key="tagId"
             data-id="{{item.tagId}}"
-            data-name="{{item.tagName}}"
+            data-name="{{item.label}}"
             data-color="{{item.tagColor}}"
             bindtap="openTag"
           >
             <view class="bar-meta">
               <view class="dot" style="background: {{item.tagColor}};"></view>
-              <text class="bar-name">{{item.tagName}}</text>
+              <text class="bar-name">{{item.label}}</text>
               <text class="bar-amount num">{{item.amountText}}</text>
             </view>
             <view class="track"><view class="fill income-bg" style="width: {{item.width}}%;"></view></view>

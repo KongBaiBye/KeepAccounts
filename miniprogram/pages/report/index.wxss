@@ -230,9 +230,15 @@
 
 .bar-name {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .bar-amount {
+  flex-shrink: 0;
+  margin-left: 16rpx;
   font-size: 26rpx;
 }
 
