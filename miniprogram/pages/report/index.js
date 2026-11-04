@@ -1,5 +1,6 @@
 const { formatFen } = require('../../utils/money')
-const { getRange, enumerateKeys } = require('../../utils/period')
+const { getRange, enumerateKeys, dateSpan, addDays } = require('../../utils/period')
+const { formatDateInput } = require('../../utils/time')
 const { guard } = require('../../utils/session')
 const { getAllTags } = require('../../utils/query')
 const { recordTitle, tagRows } = require('../../utils/tags')
@@ -10,6 +11,7 @@ const MODES = [
   { key: 'month', label: '月' },
   { key: 'year', label: '年' },
   { key: 'custom', label: '自定义' },
+  { key: 'time', label: '时间' },
 ]
 
 function deltaText(current, previous) {
@@ -17,6 +19,15 @@ function deltaText(current, previous) {
   if (diff === 0) return '较上期 持平'
   const sign = diff > 0 ? '+' : '-'
   return `较上期 ${sign}${formatFen(Math.abs(diff))}`
+}
+
+function trendLabel(key, grain, timeMode, crossYear, crossMonth) {
+  if (grain === 'month') {
+    const month = `${Number(key.slice(5))}月`
+    return timeMode && crossYear ? `${key.slice(0, 4)}年${month}` : month
+  }
+  const day = String(Number(key.slice(8)))
+  return timeMode && crossMonth ? `${Number(key.slice(5))}/${day}` : day
 }
 
 function deltaTone(kind, diff) {
@@ -35,6 +46,11 @@ Page({
     cycleStartDay: 0,
     days: Array.from({ length: 31 }, (_, index) => index + 1),
     showDayPicker: false,
+    timeStart: '',
+    timeEnd: '',
+    draftStart: '',
+    draftEnd: '',
+    showRangePicker: false,
     rangeReady: true,
     label: '',
     expenseText: '0.00',
@@ -55,8 +71,22 @@ Page({
 
   onShow() {
     const tabBar = typeof this.getTabBar === 'function' && this.getTabBar()
-    if (tabBar) tabBar.setData({ selected: 1 })
+    if (tabBar) {
+      tabBar.setData({
+        selected: 1,
+        hidden: this.data.showDayPicker || this.data.showRangePicker,
+      })
+    }
     this.bootstrap()
+  },
+
+  onHide() {
+    this.setTabBarHidden(false)
+  },
+
+  setTabBarHidden(hidden) {
+    const tabBar = typeof this.getTabBar === 'function' && this.getTabBar()
+    if (tabBar) tabBar.setData({ hidden })
   },
 
   async onPullDownRefresh() {
@@ -94,7 +124,14 @@ Page({
       this.setData({ loaded: true, rangeReady: false, hasActivity: false })
       return
     }
-    const range = getRange(this.data.mode, this.data.shift, this.data.cycleStartDay)
+    if (this.data.mode === 'time' && !this.data.timeStart) {
+      this.range = null
+      this.setData({ loaded: true, rangeReady: false, hasActivity: false })
+      return
+    }
+    const range = this.data.mode === 'time'
+      ? dateSpan(this.data.timeStart, this.data.timeEnd)
+      : getRange(this.data.mode, this.data.shift, this.data.cycleStartDay)
     this.range = range
     this.setData({ label: range.label, rangeReady: true })
     try {
@@ -131,9 +168,13 @@ Page({
     ;(result.trend || []).forEach((item) => {
       trendMap[item.key] = item
     })
+    const last = addDays(range.end, -1)
+    const crossYear = range.start.getFullYear() !== last.getFullYear()
+    const crossMonth = crossYear || range.start.getMonth() !== last.getMonth()
+    const timeMode = this.data.mode === 'time'
     const trend = enumerateKeys(range.start, range.end, range.grain).map((key) => ({
       key,
-      label: range.grain === 'month' ? `${Number(key.slice(5))}月` : String(Number(key.slice(8))),
+      label: trendLabel(key, range.grain, timeMode, crossYear, crossMonth),
       expense: trendMap[key] ? trendMap[key].expense : 0,
       income: trendMap[key] ? trendMap[key].income : 0,
     }))
@@ -190,19 +231,24 @@ Page({
 
   onMode(event) {
     const mode = event.currentTarget.dataset.key
+    if (mode === 'time') {
+      this.openRangePicker()
+      return
+    }
     this.data.mode = mode
     this.data.shift = 0
     this.setData({ mode, shift: 0 })
     if (mode === 'custom' && !this.data.cycleStartDay) {
       this.range = null
       this.setData({ showDayPicker: true, rangeReady: false, loaded: true, hasActivity: false })
+      this.setTabBarHidden(true)
       return
     }
     this.load()
   },
 
   onShift(event) {
-    if (!this.data.rangeReady) return
+    if (!this.data.rangeReady || this.data.mode === 'time') return
     const shift = this.data.shift + Number(event.currentTarget.dataset.step)
     this.data.shift = shift
     this.setData({ shift })
@@ -211,14 +257,66 @@ Page({
 
   onRangeTap() {
     if (this.data.mode === 'custom') this.openPicker()
+    if (this.data.mode === 'time') this.openRangePicker()
+  },
+
+  openRangePicker() {
+    const today = new Date()
+    const monthStart = formatDateInput(new Date(today.getFullYear(), today.getMonth(), 1))
+    const todayText = formatDateInput(today)
+    this.setData({
+      showRangePicker: true,
+      draftStart: this.data.timeStart || monthStart,
+      draftEnd: this.data.timeEnd || todayText,
+    })
+    this.setTabBarHidden(true)
+  },
+
+  closeRangePicker() {
+    this.setData({ showRangePicker: false })
+    this.setTabBarHidden(false)
+  },
+
+  onDraftStart(event) {
+    const draftStart = event.detail.value
+    const draftEnd = this.data.draftEnd < draftStart ? draftStart : this.data.draftEnd
+    this.setData({ draftStart, draftEnd })
+  },
+
+  onDraftEnd(event) {
+    this.setData({ draftEnd: event.detail.value })
+  },
+
+  applyRange() {
+    const timeStart = this.data.draftStart
+    const timeEnd = this.data.draftEnd
+    if (!timeStart || !timeEnd || timeEnd < timeStart) {
+      wx.showToast({ title: '请选择有效区间', icon: 'none' })
+      return
+    }
+    this.data.timeStart = timeStart
+    this.data.timeEnd = timeEnd
+    this.data.mode = 'time'
+    this.data.shift = 0
+    this.setData({
+      timeStart,
+      timeEnd,
+      mode: 'time',
+      shift: 0,
+      showRangePicker: false,
+    })
+    this.setTabBarHidden(false)
+    this.load()
   },
 
   openPicker() {
     this.setData({ showDayPicker: true })
+    this.setTabBarHidden(true)
   },
 
   closePicker() {
     this.setData({ showDayPicker: false })
+    this.setTabBarHidden(this.data.showRangePicker)
   },
 
   noop() {},
@@ -234,6 +332,7 @@ Page({
       showDayPicker: false,
       mode: 'custom',
     })
+    this.setTabBarHidden(false)
     try {
       const db = wx.cloud.database()
       if (this.settingsId) {
@@ -262,6 +361,12 @@ Page({
     if (!this.range) return
     const { id, name, color } = event.currentTarget.dataset
     const scope = this.data.tagGroup === 'child' ? 'tag' : 'branch'
+    if (this.data.mode === 'time') {
+      wx.navigateTo({
+        url: `/pages/tag-records/index?tagId=${id}&name=${encodeURIComponent(name)}&color=${encodeURIComponent(color)}&mode=custom&shift=0&scope=${scope}&customStart=${this.data.timeStart}&customEnd=${this.data.timeEnd}`,
+      })
+      return
+    }
     const mode = this.data.mode === 'day' || this.data.mode === 'custom' ? 'month' : this.data.mode
     const shift = this.data.mode === 'custom' ? 0 : this.data.shift
     wx.navigateTo({

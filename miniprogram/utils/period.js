@@ -76,6 +76,20 @@ function customRange(today, endDay, shift) {
   return { start, end }
 }
 
+function dateSpan(startText, endText) {
+  const [startYear, startMonth, startDay] = String(startText).split('-').map(Number)
+  const [endYear, endMonth, endDay] = String(endText).split('-').map(Number)
+  const start = startOfDay(new Date(startYear, startMonth - 1, startDay))
+  const last = startOfDay(new Date(endYear, endMonth - 1, endDay))
+  const end = addDays(last, 1)
+  const days = Math.round((end.getTime() - start.getTime()) / 86400000)
+  const grain = days > 62 ? 'month' : 'day'
+  const label = start.getTime() === last.getTime()
+    ? formatRangeLabel('day', start, end)
+    : formatRangeLabel('week', start, end)
+  return { start, end, grain, label }
+}
+
 function getRange(mode, shift, cycleStartDay, now = new Date()) {
   const today = startOfDay(now)
   let start
@@ -132,5 +146,6 @@ module.exports = {
   dayKey,
   monthKey,
   getRange,
+  dateSpan,
   enumerateKeys,
 }

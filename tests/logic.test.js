@@ -1,5 +1,5 @@
 const assert = require('assert')
-const { getRange } = require('../miniprogram/utils/period')
+const { getRange, dateSpan } = require('../miniprogram/utils/period')
 const { applyKey, rawToFen, fenToRaw, formatFen, formatTyping } = require('../miniprogram/utils/money')
 
 function ymd(date) {
@@ -67,6 +67,25 @@ assert.strictEqual(ymd(range.start), '2026-1-1')
 assert.strictEqual(ymd(range.end), '2027-1-1')
 assert.strictEqual(range.grain, 'month')
 assert.strictEqual(range.label, '2026年')
+
+let span = dateSpan('2026-10-01', '2026-10-15')
+assert.strictEqual(ymd(span.start), '2026-10-1')
+assert.strictEqual(ymd(span.end), '2026-10-16')
+assert.strictEqual(span.grain, 'day')
+assert.strictEqual(span.label, '10月1日 – 10月15日')
+
+span = dateSpan('2026-11-04', '2026-11-04')
+assert.strictEqual(ymd(span.end), '2026-11-5')
+assert.strictEqual(span.grain, 'day')
+assert.strictEqual(span.label, '2026年11月4日')
+
+span = dateSpan('2026-01-01', '2026-03-15')
+assert.strictEqual(span.grain, 'month')
+assert.strictEqual(span.label, '1月1日 – 3月15日')
+
+span = dateSpan('2025-12-01', '2026-02-01')
+assert.strictEqual(span.grain, 'month')
+assert.strictEqual(span.label, '2025年12月1日 – 2026年2月1日')
 
 assert.strictEqual(applyKey('', '1'), '1')
 assert.strictEqual(applyKey('0', '5'), '5')

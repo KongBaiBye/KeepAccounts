@@ -13,9 +13,9 @@
       </view>
     </scroll-view>
     <view class="range-row" wx:if="{{rangeReady}}">
-      <view class="arrow" data-step="-1" bindtap="onShift">‹</view>
-      <view class="range-label" bindtap="onRangeTap">{{label}}</view>
-      <view class="arrow" data-step="1" bindtap="onShift">›</view>
+      <view class="arrow" wx:if="{{mode !== 'time'}}" data-step="-1" bindtap="onShift">‹</view>
+      <view class="range-label {{mode === 'time' ? 'alone' : ''}}" bindtap="onRangeTap">{{label}}</view>
+      <view class="arrow" wx:if="{{mode !== 'time'}}" data-step="1" bindtap="onShift">›</view>
     </view>
     <view class="cycle" wx:if="{{mode === 'custom' && cycleStartDay}}" bindtap="openPicker">每月{{cycleStartDay}}日</view>
   </view>
@@ -130,6 +130,25 @@
       </view>
     </block>
   </block>
+
+  <view class="mask" wx:if="{{showRangePicker}}" bindtap="closeRangePicker">
+    <view class="sheet" catchtap="noop">
+      <text class="sheet-title">选择时间区间</text>
+      <view class="range-field">
+        <text class="field-label">开始</text>
+        <picker mode="date" value="{{draftStart}}" end="{{draftEnd}}" bindchange="onDraftStart">
+          <view class="date-value">{{draftStart}}</view>
+        </picker>
+      </view>
+      <view class="range-field">
+        <text class="field-label">结束</text>
+        <picker mode="date" value="{{draftEnd}}" start="{{draftStart}}" bindchange="onDraftEnd">
+          <view class="date-value">{{draftEnd}}</view>
+        </picker>
+      </view>
+      <button class="btn sheet-btn" bindtap="applyRange">查询</button>
+    </view>
+  </view>
 
   <view class="mask" wx:if="{{showDayPicker}}" bindtap="closePicker">
     <view class="sheet" catchtap="noop">
