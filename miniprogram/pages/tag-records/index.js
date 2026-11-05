@@ -1,4 +1,4 @@
-const { getRange, addDays, startOfDay } = require('../../utils/period')
+const { getRange, dateSpan } = require('../../utils/period')
 const { formatDateInput } = require('../../utils/time')
 const { guard } = require('../../utils/session')
 const { groupRecords } = require('../../utils/records')
@@ -12,22 +12,8 @@ const MODES = [
   { key: 'month', label: '月' },
   { key: 'year', label: '年' },
   { key: 'custom', label: '自定义' },
+  { key: 'time', label: '时间' },
 ]
-
-function dateFromText(text) {
-  const [year, month, day] = String(text).split('-').map(Number)
-  return new Date(year, month - 1, day)
-}
-
-function rangeLabel(start, end) {
-  const last = addDays(end, -1)
-  const crossYear = start.getFullYear() !== last.getFullYear()
-  const text = (date) => {
-    const day = `${date.getMonth() + 1}月${date.getDate()}日`
-    return crossYear ? `${date.getFullYear()}年${day}` : day
-  }
-  return `${text(start)} – ${text(last)}`
-}
 
 Page({
   data: {
@@ -38,10 +24,13 @@ Page({
     modes: MODES,
     mode: 'month',
     shift: 0,
+    cycleStartDay: 0,
+    days: Array.from({ length: 31 }, (_, index) => index + 1),
+    showDayPicker: false,
     rangeReady: true,
     label: '',
-    customStart: '',
-    customEnd: '',
+    timeStart: '',
+    timeEnd: '',
     draftStart: '',
     draftEnd: '',
     showRangePicker: false,
@@ -62,9 +51,9 @@ Page({
       name,
       color: decodeURIComponent(options.color || '#B0A4C8'),
       mode,
-      shift: mode === 'custom' ? 0 : (Number(options.shift) || 0),
-      customStart: options.customStart || '',
-      customEnd: options.customEnd || '',
+      shift: mode === 'time' ? 0 : (Number(options.shift) || 0),
+      timeStart: options.timeStart || '',
+      timeEnd: options.timeEnd || '',
     })
   },
 
@@ -84,19 +73,54 @@ Page({
   async bootstrap() {
     const user = await guard()
     if (!user) return
+    await this.loadSettings()
     this.setData({ ready: true })
-    if (this.data.mode === 'custom' && !this.data.customStart) {
+    if (this.data.mode === 'custom' && !this.data.cycleStartDay) {
+      this.setData({
+        loaded: true,
+        rangeReady: false,
+        groups: [],
+        hasMore: false,
+        totalText: '',
+        totalTone: '',
+        childTags: [],
+      })
+      return
+    }
+    if (this.data.mode === 'time' && !this.data.timeStart) {
       this.openRangePicker()
-      this.setData({ loaded: true, rangeReady: false, groups: [], totalText: '', totalTone: '' })
+      this.setData({
+        loaded: true,
+        rangeReady: false,
+        groups: [],
+        hasMore: false,
+        totalText: '',
+        totalTone: '',
+        childTags: [],
+      })
       return
     }
     await this.load()
   },
 
+  async loadSettings() {
+    try {
+      const res = await wx.cloud.database().collection('settings').limit(1).get()
+      const doc = res.data[0]
+      if (!doc) return
+      this.settingsId = doc._id
+      if (!this.data.cycleStartDay && doc.cycleStartDay) {
+        this.setData({ cycleStartDay: doc.cycleStartDay })
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  },
+
   async load() {
     const seq = (this.loadSeq || 0) + 1
     this.loadSeq = seq
-    if (this.data.mode === 'custom' && !this.data.customStart) {
+    if ((this.data.mode === 'custom' && !this.data.cycleStartDay) || (this.data.mode === 'time' && !this.data.timeStart)) {
       this.range = null
       this.setData({
         loaded: true,
@@ -170,12 +194,8 @@ Page({
   },
 
   currentRange() {
-    if (this.data.mode === 'custom') {
-      const start = startOfDay(dateFromText(this.data.customStart))
-      const end = addDays(startOfDay(dateFromText(this.data.customEnd)), 1)
-      return { start, end, label: rangeLabel(start, end) }
-    }
-    return getRange(this.data.mode, this.data.shift, 1)
+    if (this.data.mode === 'time') return dateSpan(this.data.timeStart, this.data.timeEnd)
+    return getRange(this.data.mode, this.data.shift, this.data.cycleStartDay || 1)
   },
 
   ensureTags() {
@@ -256,34 +276,41 @@ Page({
 
   onMode(event) {
     const mode = event.currentTarget.dataset.key
+    if (mode === 'time') {
+      this.openRangePicker()
+      return
+    }
     this.data.mode = mode
     this.data.shift = 0
     this.setData({ mode, shift: 0 })
-    if (mode === 'custom') {
-      this.openRangePicker()
-      if (!this.data.customStart) {
-        this.range = null
-        this.setData({
-          rangeReady: false,
-          loaded: true,
-          groups: [],
-          hasMore: false,
-          totalText: '',
-          totalTone: '',
-          childTags: [],
-        })
-      }
+    if (mode === 'custom' && !this.data.cycleStartDay) {
+      this.range = null
+      this.setData({
+        showDayPicker: true,
+        rangeReady: false,
+        loaded: true,
+        groups: [],
+        hasMore: false,
+        totalText: '',
+        totalTone: '',
+        childTags: [],
+      })
       return
     }
     this.load()
   },
 
   onShift(event) {
-    if (!this.data.rangeReady || this.data.mode === 'custom') return
+    if (!this.data.rangeReady || this.data.mode === 'time') return
     const shift = this.data.shift + Number(event.currentTarget.dataset.step)
     this.data.shift = shift
     this.setData({ shift })
     this.load()
+  },
+
+  onRangeTap() {
+    if (this.data.mode === 'custom') this.openPicker()
+    if (this.data.mode === 'time') this.openRangePicker()
   },
 
   openRangePicker() {
@@ -292,16 +319,52 @@ Page({
     const todayText = formatDateInput(today)
     this.setData({
       showRangePicker: true,
-      draftStart: this.data.customStart || monthStart,
-      draftEnd: this.data.customEnd || todayText,
+      draftStart: this.data.timeStart || monthStart,
+      draftEnd: this.data.timeEnd || todayText,
     })
   },
 
-  closePicker() {
+  closeRangePicker() {
     this.setData({ showRangePicker: false })
   },
 
+  openPicker() {
+    this.setData({ showDayPicker: true })
+  },
+
+  closePicker() {
+    this.setData({ showDayPicker: false })
+  },
+
   noop() {},
+
+  async pickDay(event) {
+    const day = Number(event.currentTarget.dataset.day)
+    this.data.cycleStartDay = day
+    this.data.shift = 0
+    this.data.mode = 'custom'
+    this.setData({
+      cycleStartDay: day,
+      shift: 0,
+      showDayPicker: false,
+      mode: 'custom',
+    })
+    try {
+      const db = wx.cloud.database()
+      if (this.settingsId) {
+        await db.collection('settings').doc(this.settingsId).update({
+          data: { cycleStartDay: day },
+        })
+      } else {
+        const added = await db.collection('settings').add({ data: { cycleStartDay: day } })
+        this.settingsId = added._id
+      }
+    } catch (err) {
+      console.error(err)
+      wx.showToast({ title: '起始日没有保存', icon: 'none' })
+    }
+    this.load()
+  },
 
   onDraftStart(event) {
     const draftStart = event.detail.value
@@ -314,19 +377,21 @@ Page({
   },
 
   applyRange() {
-    const customStart = this.data.draftStart
-    const customEnd = this.data.draftEnd
-    if (!customStart || !customEnd || customEnd < customStart) {
+    const timeStart = this.data.draftStart
+    const timeEnd = this.data.draftEnd
+    if (!timeStart || !timeEnd || timeEnd < timeStart) {
       wx.showToast({ title: '请选择有效区间', icon: 'none' })
       return
     }
-    this.data.customStart = customStart
-    this.data.customEnd = customEnd
-    this.data.mode = 'custom'
+    this.data.timeStart = timeStart
+    this.data.timeEnd = timeEnd
+    this.data.mode = 'time'
+    this.data.shift = 0
     this.setData({
-      customStart,
-      customEnd,
-      mode: 'custom',
+      timeStart,
+      timeEnd,
+      mode: 'time',
+      shift: 0,
       showRangePicker: false,
     })
     this.load()
@@ -340,8 +405,8 @@ Page({
     const { id, name, color } = event.currentTarget.dataset
     if (!id || !this.range) return
     const mode = this.data.mode
-    const shift = mode === 'custom' ? 0 : this.data.shift
-    const range = mode === 'custom' ? `&customStart=${this.data.customStart}&customEnd=${this.data.customEnd}` : ''
+    const shift = mode === 'time' ? 0 : this.data.shift
+    const range = mode === 'time' ? `&timeStart=${this.data.timeStart}&timeEnd=${this.data.timeEnd}` : ''
     wx.navigateTo({
       url: `/pages/tag-records/index?tagId=${id}&name=${encodeURIComponent(name)}&color=${encodeURIComponent(color)}&mode=${mode}&shift=${shift}&scope=tag${range}`,
     })

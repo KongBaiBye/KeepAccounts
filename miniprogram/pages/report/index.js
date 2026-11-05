@@ -363,12 +363,12 @@ Page({
     const scope = this.data.tagGroup === 'child' ? 'tag' : 'branch'
     if (this.data.mode === 'time') {
       wx.navigateTo({
-        url: `/pages/tag-records/index?tagId=${id}&name=${encodeURIComponent(name)}&color=${encodeURIComponent(color)}&mode=custom&shift=0&scope=${scope}&customStart=${this.data.timeStart}&customEnd=${this.data.timeEnd}`,
+        url: `/pages/tag-records/index?tagId=${id}&name=${encodeURIComponent(name)}&color=${encodeURIComponent(color)}&mode=time&shift=0&scope=${scope}&timeStart=${this.data.timeStart}&timeEnd=${this.data.timeEnd}`,
       })
       return
     }
-    const mode = this.data.mode === 'day' || this.data.mode === 'custom' ? 'month' : this.data.mode
-    const shift = this.data.mode === 'custom' ? 0 : this.data.shift
+    const mode = this.data.mode === 'day' ? 'month' : this.data.mode
+    const shift = this.data.mode === 'day' ? 0 : this.data.shift
     wx.navigateTo({
       url: `/pages/tag-records/index?tagId=${id}&name=${encodeURIComponent(name)}&color=${encodeURIComponent(color)}&mode=${mode}&shift=${shift}&scope=${scope}`,
     })

@@ -18,15 +18,17 @@
       </view>
     </scroll-view>
     <view class="range-row" wx:if="{{rangeReady}}">
-      <view class="arrow" wx:if="{{mode !== 'custom'}}" data-step="-1" bindtap="onShift">‹</view>
-      <view class="range-label {{mode === 'custom' ? 'alone' : ''}}" bindtap="openRangePicker">{{label}}</view>
-      <view class="arrow" wx:if="{{mode !== 'custom'}}" data-step="1" bindtap="onShift">›</view>
+      <view class="arrow" wx:if="{{mode !== 'time'}}" data-step="-1" bindtap="onShift">‹</view>
+      <view class="range-label {{mode === 'time' ? 'alone' : ''}}" bindtap="onRangeTap">{{label}}</view>
+      <view class="arrow" wx:if="{{mode !== 'time'}}" data-step="1" bindtap="onShift">›</view>
     </view>
+    <view class="cycle" wx:if="{{mode === 'custom' && cycleStartDay}}" bindtap="openPicker">每月{{cycleStartDay}}日</view>
   </view>
 
-  <view class="ask" wx:if="{{mode === 'custom' && !customStart}}">
-    <text class="ask-title">选择时间区间</text>
-    <text class="muted">开始和结束都包含在查询里</text>
+  <view class="ask" wx:if="{{mode === 'custom' && !cycleStartDay}}">
+    <text class="ask-title">选择每月几号</text>
+    <text class="muted">选中后自动查询包含今天的那一整月</text>
+    <button class="btn ask-btn" bindtap="openPicker">选择日期</button>
   </view>
 
   <view class="card total" wx:elif="{{rangeReady && totalText}}">
@@ -79,7 +81,7 @@
   </block>
   <view class="empty muted" wx:if="{{loaded && rangeReady && !groups.length}}">这段时间还没有账单</view>
 
-  <view class="mask" wx:if="{{showRangePicker}}" bindtap="closePicker">
+  <view class="mask" wx:if="{{showRangePicker}}" bindtap="closeRangePicker">
     <view class="sheet" catchtap="noop">
       <text class="sheet-title">选择时间区间</text>
       <view class="range-field">
@@ -95,6 +97,21 @@
         </picker>
       </view>
       <button class="btn ask-btn" bindtap="applyRange">查询</button>
+    </view>
+  </view>
+
+  <view class="mask" wx:if="{{showDayPicker}}" bindtap="closePicker">
+    <view class="sheet" catchtap="noop">
+      <text class="sheet-title">每月几号</text>
+      <view class="day-grid">
+        <view
+          class="day {{cycleStartDay === item ? 'on' : ''}}"
+          wx:for="{{days}}"
+          wx:key="*this"
+          data-day="{{item}}"
+          bindtap="pickDay"
+        >{{item}}</view>
+      </view>
     </view>
   </view>
 </view>

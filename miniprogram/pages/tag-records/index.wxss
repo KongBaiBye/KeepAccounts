@@ -57,6 +57,13 @@
   text-align: center;
 }
 
+.cycle {
+  margin-top: 12rpx;
+  color: #8A8178;
+  font-size: 24rpx;
+  text-align: center;
+}
+
 .ask {
   padding: 48rpx 0 24rpx;
   text-align: center;
@@ -119,6 +126,27 @@
 .date-value {
   font-size: 30rpx;
   font-weight: 600;
+}
+
+.day-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.day {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 16rpx;
+  background: #ffffff;
+  text-align: center;
+  line-height: 80rpx;
+  font-size: 28rpx;
+}
+
+.day.on {
+  background: #1F2A37;
+  color: #ffffff;
 }
 
 .dot {
