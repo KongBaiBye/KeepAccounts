@@ -39,6 +39,16 @@
       </view>
       <text class="chevron">›</text>
     </view>
+    <view class="menu-row" bindtap="goEarnToday">
+      <view class="menu-main">
+        <view class="menu-mark">赚</view>
+        <view class="menu-copy">
+          <text class="menu-title">今日已赚</text>
+          <text class="menu-desc">按秒算今天赚了多少</text>
+        </view>
+      </view>
+      <text class="chevron">›</text>
+    </view>
     <view class="menu-row" bindtap="openExport">
       <view class="menu-main">
         <view class="menu-mark">导</view>

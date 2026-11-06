@@ -1,0 +1,162 @@
+<view class="boot" wx:if="{{!ready}}">正在打开</view>
+
+<view class="screen earn" wx:elif="{{!configured}}">
+  <view class="setup-head">
+    <text class="setup-title">工作信息</text>
+    <text class="setup-desc">填好工资、工时和休息时间，就能按秒看到今天赚了多少</text>
+  </view>
+
+  <view class="card form">
+    <view class="form-row">
+      <text class="form-label">月工资</text>
+      <view class="form-control">
+        <text class="form-unit">¥</text>
+        <input
+          class="form-input"
+          type="digit"
+          placeholder="例如 10000"
+          placeholder-class="placeholder"
+          value="{{salary}}"
+          bindinput="onSalary"
+        />
+      </view>
+    </view>
+    <view class="form-row">
+      <text class="form-label">月工作天数</text>
+      <view class="form-control">
+        <input
+          class="form-input"
+          type="digit"
+          maxlength="5"
+          placeholder="例如 21.75"
+          placeholder-class="placeholder"
+          value="{{workDays}}"
+          bindinput="onWorkDays"
+        />
+        <text class="form-unit trailing">天</text>
+      </view>
+    </view>
+    <view class="form-row">
+      <text class="form-label">上班时间</text>
+      <picker mode="time" value="{{startTime}}" bindchange="onStartTime">
+        <view class="form-picker">
+          <text class="form-picker-value">{{startTime}}</text>
+          <text class="form-chevron">›</text>
+        </view>
+      </picker>
+    </view>
+    <view class="form-row">
+      <text class="form-label">下班时间</text>
+      <picker mode="time" value="{{endTime}}" bindchange="onEndTime">
+        <view class="form-picker">
+          <text class="form-picker-value">{{endTime}}</text>
+          <text class="form-chevron">›</text>
+        </view>
+      </picker>
+    </view>
+    <view class="form-row">
+      <view class="form-copy">
+        <text class="form-label">休息时间</text>
+        <text class="form-tip">休息时段不计薪</text>
+      </view>
+      <switch class="form-switch" checked="{{hasRest}}" color="#1F8A70" bindchange="onHasRest" />
+    </view>
+    <block wx:if="{{hasRest}}">
+      <view class="form-row">
+        <text class="form-label">休息开始</text>
+        <picker mode="time" value="{{restStartTime}}" bindchange="onRestStartTime">
+          <view class="form-picker">
+            <text class="form-picker-value">{{restStartTime}}</text>
+            <text class="form-chevron">›</text>
+          </view>
+        </picker>
+      </view>
+      <view class="form-row">
+        <text class="form-label">休息结束</text>
+        <picker mode="time" value="{{restEndTime}}" bindchange="onRestEndTime">
+          <view class="form-picker">
+            <text class="form-picker-value">{{restEndTime}}</text>
+            <text class="form-chevron">›</text>
+          </view>
+        </picker>
+      </view>
+    </block>
+  </view>
+
+  <button class="btn save" bindtap="onSave" loading="{{saving}}" disabled="{{saving}}">保存</button>
+  <view class="cancel" wx:if="{{editing}}" bindtap="cancelEdit">取消</view>
+</view>
+
+<view class="screen earn" wx:else>
+  <view class="dayline">
+    <text class="dayline-date">{{dateLabel}}</text>
+    <view class="status-pill status-{{statusKey}}">{{statusLabel}}</view>
+  </view>
+
+  <view class="card stage">
+    <view class="stage-glow"></view>
+    <text class="stage-label">今日已赚</text>
+    <view class="stage-amount num">
+      <text class="stage-currency">¥</text>
+      <text>{{earnedText}}</text>
+    </view>
+    <text class="stage-hint">{{statusHint}}</text>
+
+    <view class="meter">
+      <view class="meter-track">
+        <view class="meter-fill" style="width: {{progressPercent}}%;"></view>
+        <view class="meter-dot" style="left: {{progressDot}}%;"></view>
+      </view>
+      <view class="meter-meta">
+        <text>{{startTime}}</text>
+        <text class="meter-percent num">{{progressPercent}}%</text>
+        <text>{{endTime}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="card clock">
+    <text class="clock-label">{{countdownLabel}}</text>
+    <view class="clock-digits">
+      <view class="digit">
+        <text class="digit-value num">{{remainH}}</text>
+        <text class="digit-unit">时</text>
+      </view>
+      <text class="digit-sep">:</text>
+      <view class="digit">
+        <text class="digit-value num">{{remainM}}</text>
+        <text class="digit-unit">分</text>
+      </view>
+      <text class="digit-sep">:</text>
+      <view class="digit">
+        <text class="digit-value num">{{remainS}}</text>
+        <text class="digit-unit">秒</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="stats">
+    <view class="card stat">
+      <text class="stat-label">今日应得</text>
+      <text class="stat-value num">¥{{dailyWageText}}</text>
+    </view>
+    <view class="card stat">
+      <text class="stat-label">时薪</text>
+      <text class="stat-value num">¥{{hourlyWageText}}</text>
+    </view>
+    <view class="card stat">
+      <text class="stat-label">上班</text>
+      <text class="stat-value">{{startTime}}</text>
+    </view>
+    <view class="card stat">
+      <text class="stat-label">下班</text>
+      <text class="stat-value">{{endTime}}</text>
+    </view>
+    <view class="card stat wide" wx:if="{{showRest}}">
+      <text class="stat-label">休息</text>
+      <text class="stat-value">{{restStartTime}} – {{restEndTime}}</text>
+    </view>
+  </view>
+
+  <view class="edit-link" bindtap="editConfig">修改配置</view>
+</view>

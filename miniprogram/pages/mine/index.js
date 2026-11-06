@@ -170,6 +170,10 @@ Page({
     wx.navigateTo({ url: '/pages/tags/index' })
   },
 
+  goEarnToday() {
+    wx.navigateTo({ url: '/pages/earn-today/index' })
+  },
+
   openExport() {
     this.exportFile = null
     this.setTabBarHidden(true)

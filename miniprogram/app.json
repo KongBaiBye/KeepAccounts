@@ -7,7 +7,8 @@
     "pages/record/index",
     "pages/tags/index",
     "pages/tag-edit/index",
-    "pages/tag-records/index"
+    "pages/tag-records/index",
+    "pages/earn-today/index"
   ],
   "window": {
     "navigationBarBackgroundColor": "#F6F4F1",

@@ -319,4 +319,92 @@ const nestedExport = buildExport({
 assert.strictEqual(nestedExport.records[0].tagName, '餐饮 / 外卖')
 assert.strictEqual(nestedExport.tags.find((tag) => tag.id === 'takeout').parentName, '餐饮')
 
+const {
+  toSeconds,
+  computeEarn,
+  validateRest,
+  formatYuan,
+  formatDuration,
+} = require('../miniprogram/utils/earn')
+
+assert.strictEqual(toSeconds('09:00'), 32400)
+assert.strictEqual(toSeconds('18:30'), 66600)
+
+const whiteCollar = { salary: 22000, workDays: 22, startTime: '09:00', endTime: '18:00' }
+let earn = computeEarn(whiteCollar, new Date(2026, 0, 15, 8, 0, 0))
+assert.strictEqual(earn.status, 'before')
+assert.strictEqual(earn.earned, 0)
+assert.strictEqual(earn.remaining, 36000)
+assert.strictEqual(earn.dailyWage, 1000)
+
+earn = computeEarn(whiteCollar, new Date(2026, 0, 15, 13, 30, 0))
+assert.strictEqual(earn.status, 'working')
+assert.ok(Math.abs(earn.earned - 500) < 1e-6)
+assert.strictEqual(earn.remaining, 16200)
+
+earn = computeEarn(whiteCollar, new Date(2026, 0, 15, 19, 0, 0))
+assert.strictEqual(earn.status, 'after')
+assert.strictEqual(earn.earned, 1000)
+assert.strictEqual(earn.remaining, 0)
+
+const nightShift = { salary: 22000, workDays: 22, startTime: '22:00', endTime: '06:00' }
+earn = computeEarn(nightShift, new Date(2026, 0, 15, 23, 0, 0))
+assert.strictEqual(earn.status, 'working')
+assert.ok(Math.abs(earn.earned - 125) < 1e-6)
+assert.strictEqual(earn.remaining, 25200)
+
+earn = computeEarn(nightShift, new Date(2026, 0, 16, 2, 0, 0))
+assert.strictEqual(earn.status, 'working')
+assert.strictEqual(earn.earned, 500)
+assert.strictEqual(earn.remaining, 14400)
+
+earn = computeEarn({ salary: 0, workDays: 22, startTime: '09:00', endTime: '18:00' })
+assert.strictEqual(earn.valid, false)
+assert.strictEqual(earn.status, 'empty')
+
+const fractional = { salary: 21750, workDays: 21.75, startTime: '09:00', endTime: '18:00' }
+earn = computeEarn(fractional, new Date(2026, 0, 15, 13, 30, 0))
+assert.strictEqual(earn.dailyWage, 1000)
+assert.ok(Math.abs(earn.earned - 500) < 1e-6)
+assert.strictEqual(earn.progress, 0.5)
+assert.ok(Math.abs(earn.hourlyWage - 111.111111) < 1e-3)
+
+const withLunch = {
+  salary: 22000,
+  workDays: 22,
+  startTime: '09:00',
+  endTime: '18:00',
+  restStartTime: '12:00',
+  restEndTime: '13:00',
+}
+earn = computeEarn(withLunch, new Date(2026, 0, 15, 11, 0, 0))
+assert.strictEqual(earn.status, 'working')
+assert.ok(Math.abs(earn.earned - 250) < 1e-6)
+assert.ok(Math.abs(earn.hourlyWage - 125) < 1e-6)
+
+earn = computeEarn(withLunch, new Date(2026, 0, 15, 12, 30, 0))
+assert.strictEqual(earn.status, 'resting')
+assert.ok(Math.abs(earn.earned - 375) < 1e-6)
+assert.strictEqual(earn.remaining, 19800)
+
+earn = computeEarn(withLunch, new Date(2026, 0, 15, 13, 30, 0))
+assert.strictEqual(earn.status, 'working')
+assert.ok(Math.abs(earn.earned - 437.5) < 1e-6)
+assert.strictEqual(earn.remaining, 16200)
+
+assert.strictEqual(validateRest(withLunch), '')
+assert.strictEqual(
+  validateRest({ startTime: '09:00', endTime: '18:00', restStartTime: '08:00', restEndTime: '09:00' }),
+  '休息时间需落在上班到下班之间'
+)
+assert.strictEqual(
+  validateRest({ startTime: '09:00', endTime: '18:00', restStartTime: '12:00', restEndTime: '12:00' }),
+  ''
+)
+
+assert.strictEqual(formatYuan(1234567.8), '1,234,567.80')
+assert.strictEqual(formatYuan(1000), '1,000.00')
+assert.strictEqual(formatDuration(16200), '04:30:00')
+assert.strictEqual(formatDuration(3600), '01:00:00')
+
 console.log('ok')
